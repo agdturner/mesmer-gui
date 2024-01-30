@@ -23,7 +23,7 @@
      */
     function loadXML() {
       console.log("<XMLHttpRequest>");
-      var request = new XMLHttpRequest();
+      let request = new XMLHttpRequest();
       console.log("</XMLHttpRequest>");
       request.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -41,8 +41,8 @@
      * @return int
      */
     function count(elements, attribute_name) {
-      var r = 0;
-      for (var i = 0; i < elements.length; i++) {
+      let r = 0;
+      for (let i = 0; i < elements.length; i++) {
         if (elements[i].getAttribute(attribute_name) != null) {
           r++;
         }
@@ -57,10 +57,11 @@
     function parse(xml) {
       console.log("Parsing xml...");
 
-      var xmlDoc = xml.responseXML;
+      let xmlDoc = xml.responseXML;
 
       /**
        * Log to console and display me.title.
+       * This goes through the entire XML file and writes out log messages to the consol.
        */
       console.log("typeof xmlDoc = " + typeof xmlDoc);
       console.log("xmlDoc.toString() = " + xmlDoc.toString());
@@ -116,8 +117,7 @@
       // Report number of reactions with id attributes.
       console.log(count(reactions, "id") + " = Number of reactions with ids");
       // Prepare table headings.
-      names = ["ID", "Reactants", "Products"];
-      //names = ["ID", "Reactants", "Products", "Transition State", "PreExponential", "Activation Energy", "TInfinity", "NInfinity"];
+      names = ["ID", "Reactants", "Products", "Transition State", "PreExponential", "Activation Energy", "TInfinity", "NInfinity"];
       var table = getTH(names);
       // Process each reaction.
       for (let i = 0; i < reactions.length; i++) {
@@ -141,68 +141,119 @@
             if (elements[j].nodeName === "reactant") {
               let molecules = elements[j].getElementsByTagName("molecule");
               //console.log("molecules =" + molecules);
-              console.log("molecules.length =" + molecules.length);
-              if (molecules.length > 0) {
-                var moleculeRef = molecules[0].getAttribute("ref");
-                console.log("moleculeRef =" + moleculeRef);
-                var moleculeRole = molecules[0].getAttribute("role");
-                console.log("moleculeRole =" + moleculeRole);
-                treactants += molecules[0].getAttribute("ref");
-                for (let k = 1; k < molecules.length; k++) {
-                  //console.log("molecules[" + k + "] = " + molecules[k]);
-                  //console.log("molecules[" + k + "].length = " + molecules[k].length);
-                  console.log("molecules[" + k + "].nodeName = " + molecules[k].nodeName);
-                  //console.log("molecules[" + k + "].nodeValue = " + molecules[k].nodeValue);
-                  //let cn = molecules[k].childNodes;
-                  //console.log("cn.length =" + cn.length);
-                  moleculeRef = molecules[k].getAttribute("ref");
-                  console.log("moleculeRef =" + moleculeRef);
-                  moleculeRole = molecules[k].getAttribute("role");
-                  console.log("moleculeRole =" + moleculeRole);
-                  //&#43; is the HTML entity for the plus sign.
-                  //treactants += " &#43; ";
-                  //treactants += moleculeRef;
-                  treactants += " " + moleculeRef;
-                }
+              //console.log("molecules.length =" + molecules.length);
+              //if (molecules.length > 0) {
+              let moleculeRef = molecules[0].getAttribute("ref");
+              console.log("moleculeRef = " + moleculeRef);
+              let moleculeRole = molecules[0].getAttribute("role");
+              console.log("moleculeRole = " + moleculeRole);
+              if (treactants === "") {
+                treactants += moleculeRef;
+              } else {
+                treactants += " + " + moleculeRef;
               }
+              //}
             } else if (elements[j].nodeName === "product") {
               let molecules = elements[j].getElementsByTagName("molecule");
-              //console.log("molecules =" + molecules);
-              console.log("molecules.length =" + molecules.length);
+              console.log("molecules = " + molecules);
+              console.log("molecules.length = " + molecules.length);
               if (molecules.length > 0) {
-                var moleculeRef = molecules[0].getAttribute("ref");
-                console.log("moleculeRef =" + moleculeRef);
+                let moleculeRef = molecules[0].getAttribute("ref");
+                console.log("moleculeRef = " + moleculeRef);
                 var moleculeRole = molecules[0].getAttribute("role");
-                console.log("moleculeRole =" + moleculeRole);
-                tproducts += molecules[0].getAttribute("ref");
-                for (let k = 1; k < molecules.length; k++) {
-                  //console.log("molecules[" + k + "] = " + molecules[k]);
-                  //console.log("molecules[" + k + "].length = " + molecules[k].length);
-                  console.log("molecules[" + k + "].nodeName = " + molecules[k].nodeName);
-                  //console.log("molecules[" + k + "].nodeValue = " + molecules[k].nodeValue);
-                  //let cn = molecules[k].childNodes;
-                  //console.log("cn.length =" + cn.length);
-                  moleculeRef = molecules[k].getAttribute("ref");
-                  console.log("moleculeRef =" + moleculeRef);
-                  moleculeRole = molecules[k].getAttribute("role");
-                  console.log("moleculeRole =" + moleculeRole);
-                  //&#43; is the HTML entity for the plus sign.
-                  //tproducts += " &#43; ";
-                  //tproducts += moleculeRef;
-                  tproducts += " " + moleculeRef;
+                console.log("moleculeRole = " + moleculeRole);
+                if (tproducts === "") {
+                  tproducts += moleculeRef;
+                } else {
+                  console.log("tproducts = " + tproducts);
+                  tproducts += " + " + moleculeRef;
+                  console.log("tproducts = " + tproducts);
                 }
               }
+            } else if (elements[j].nodeName === "me:MCRCMethod") {
+              console.log("MCRCMethod");
+              console.log("elements[j].getAttribute(\"xsi:type\") = " + elements[j].getAttribute("xsi:type"));
+              let els = elements[j].getElementsByTagName("*");
+              console.log("els = " + els);
+              console.log("els.length = " + els.length);
+              if (els.length > 0) {
+                for (let k = 0; k < els.length; k++) {
+                  //var moleculeRef = molecules[0].getAttribute("ref");
+                  console.log("els[" + k + "] = " + els[k]);
+                  console.log("els[" + k + "].nodeName = " + els[k].nodeName);
+                  console.log("els[" + k + "].nodeValue = " + els[k].nodeValue);
+                  if (els[k].nodeName === "me:preExponential") {
+                    let cn = els[k].childNodes;
+                    console.log("cn = " + cn);
+                    console.log("cn.length = " + cn.length);
+                    console.log("cn[0].nodeValue = " + cn[0].nodeValue);
+                    if (tpreExponential === "") {
+                      tpreExponential += cn[0].nodeValue;
+                    } else {
+                      tpreExponential += " + " + cn[0].nodeValue;
+                    }
+                  } else if (els[k].nodeName === "me:activationEnergy") {
+                    let cn = els[k].childNodes;
+                    console.log("cn = " + cn);
+                    console.log("cn.length = " + cn.length);
+                    console.log("cn[0].nodeValue = " + cn[0].nodeValue);
+                    if (tactivationEnergy === "") {
+                      tactivationEnergy += cn[0].nodeValue;
+                    } else {
+                      tactivationEnergy += " + " + cn[0].nodeValue;
+                    }
+                  } else if (els[k].nodeName === "me:TInfinity") {
+                    let cn = els[k].childNodes;
+                    console.log("cn = " + cn);
+                    console.log("cn.length = " + cn.length);
+                    console.log("cn[0].nodeValue = " + cn[0].nodeValue);
+                    if (ttInfinity === "") {
+                      ttInfinity += cn[0].nodeValue;
+                    } else {
+                      ttInfinity += " + " + cn[0].nodeValue;
+                    }
+                  } else if (els[k].nodeName === "me:nInfinity") {
+                    let cn = els[k].childNodes;
+                    console.log("cn = " + cn);
+                    console.log("cn.length = " + cn.length);
+                    console.log("cn[0].nodeValue = " + cn[0].nodeValue);
+                    if (tnInfinity === "") {
+                      tnInfinity += cn[0].nodeValue;
+                    } else {
+                      tnInfinity += " + " + cn[0].nodeValue;
+                    }
+                  } else {
+                    console.log("Unrecognised nodeName = " + els[k].nodeName);
+                    return;
+                  }
+                }
+              }
+            } else if (elements[j].nodeName === "me:transitionState") {
+              let molecules = elements[j].getElementsByTagName("*");
+              console.log("molecules =" + molecules);
+              console.log("molecules.length = " + molecules.length);
+              let moleculeRef = molecules[0].getAttribute("ref");
+              console.log("moleculeRef = " + moleculeRef);
+              let moleculeRole = molecules[0].getAttribute("role");
+              console.log("moleculeRole = " + moleculeRole);
+              if (ttransitionState === "") {
+                ttransitionState += moleculeRef;
+              } else {
+                ttransitionState += " + " + moleculeRef;
+              }
             } else {
-              console.log("elements[" + j + "].nodeName = " + elements[j].nodeName);
+              //console.log("elements[" + j + "].nodeName = " + elements[j].nodeName);
             }
-            //let molecule = reactants[j].getElementsByTagName("molecule");
-            //let moleculeRef = molecule.getAttribute("ref");
-            //treactants += " + " + moleculeRef;
           }
-          console.log("tproducts =" + tproducts);
-          table += getTR(getTD(id) + getTD(treactants) + getTD(tproducts));
-          console.log("table =" + table);
-          //table += getTR(getTD(id) + getTD(reactants) + getTD(products) + getTD(transitionState) + getTD(preExponential) + getTD(activationEnergy) + getTD(tInfinity) + getTD(nInfinity));
+          console.log("treactants = " + treactants);
+          console.log("tproducts = " + tproducts);
+          console.log("ttransitionState = " + ttransitionState);
+          console.log("tpreExponential = " + tpreExponential);
+          console.log("tactivationEnergy = " + tactivationEnergy);
+          console.log("ttInfinity = " + ttInfinity);
+          console.log("tnInfinity = " + tnInfinity);
+          table += getTR(getTD(id) + getTD(treactants) + getTD(tproducts) + getTD(ttransitionState) + getTD(tpreExponential) + getTD(tactivationEnergy) + getTD(ttInfinity) + getTD(tnInfinity));
+          console.log("table = " + table);
         }
       }
       return table;
@@ -320,7 +371,6 @@
     * @return x wrapped in td tags.
     */
     function getTD(x) {
-      console.log("getTD(" + x + ")");
       return "<td>" + x + "</td>";
     }
 
