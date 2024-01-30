@@ -93,7 +93,127 @@
       //console.log("Title=" + title);
       //document.getElementById("metitle").innerHTML = title;
 
-      // Process molecules.
+      /**
+       * Generate molecules table.
+       */
+      document.getElementById("molecules").innerHTML = getTable(generateMoleculesTable(xmlDoc));
+
+      /**
+       * Generate reactions table.
+       */
+      document.getElementById("reactions").innerHTML = getTable(generateReactionsTable(xmlDoc));
+
+    }
+
+    /**
+     * Generate reactions table.
+     * @param XMLDocument xmlDoc
+     * @return String
+     */
+    function generateReactionsTable(xmlDoc) {
+      var reactions = xmlDoc.getElementsByTagName('reaction');
+      console.log("" + reactions.length + " = Number of reactions");
+      // Report number of reactions with id attributes.
+      console.log(count(reactions, "id") + " = Number of reactions with ids");
+      // Prepare table headings.
+      names = ["ID", "Reactants", "Products"];
+      //names = ["ID", "Reactants", "Products", "Transition State", "PreExponential", "Activation Energy", "TInfinity", "NInfinity"];
+      var table = getTH(names);
+      // Process each reaction.
+      for (let i = 0; i < reactions.length; i++) {
+        let id = reactions[i].getAttribute("id");
+        var treactants = "";
+        var tproducts = "";
+        var ttransitionState = "";
+        var tpreExponential = "";
+        var tactivationEnergy = "";
+        var ttInfinity = "";
+        var tnInfinity = "";
+        if (id != null) {
+          console.log("id = " + id);
+          let elements = reactions[i].getElementsByTagName("*");
+          console.log("elements.length = " + elements.length);
+          for (let j = 0; j < elements.length; j++) {
+            //console.log("elements[" + j + "] = " + elements[j]);
+            //console.log("elements[" + j + "].length = " + elements[j].length);
+            console.log("elements[" + j + "].nodeName = " + elements[j].nodeName);
+            //console.log("elements[" + j + "].nodeValue = " + elements[j].nodeValue);
+            if (elements[j].nodeName === "reactant") {
+              let molecules = elements[j].getElementsByTagName("molecule");
+              //console.log("molecules =" + molecules);
+              console.log("molecules.length =" + molecules.length);
+              if (molecules.length > 0) {
+                var moleculeRef = molecules[0].getAttribute("ref");
+                console.log("moleculeRef =" + moleculeRef);
+                var moleculeRole = molecules[0].getAttribute("role");
+                console.log("moleculeRole =" + moleculeRole);
+                treactants += molecules[0].getAttribute("ref");
+                for (let k = 1; k < molecules.length; k++) {
+                  //console.log("molecules[" + k + "] = " + molecules[k]);
+                  //console.log("molecules[" + k + "].length = " + molecules[k].length);
+                  console.log("molecules[" + k + "].nodeName = " + molecules[k].nodeName);
+                  //console.log("molecules[" + k + "].nodeValue = " + molecules[k].nodeValue);
+                  //let cn = molecules[k].childNodes;
+                  //console.log("cn.length =" + cn.length);
+                  moleculeRef = molecules[k].getAttribute("ref");
+                  console.log("moleculeRef =" + moleculeRef);
+                  moleculeRole = molecules[k].getAttribute("role");
+                  console.log("moleculeRole =" + moleculeRole);
+                  //&#43; is the HTML entity for the plus sign.
+                  //treactants += " &#43; ";
+                  //treactants += moleculeRef;
+                  treactants += " " + moleculeRef;
+                }
+              }
+            } else if (elements[j].nodeName === "product") {
+              let molecules = elements[j].getElementsByTagName("molecule");
+              //console.log("molecules =" + molecules);
+              console.log("molecules.length =" + molecules.length);
+              if (molecules.length > 0) {
+                var moleculeRef = molecules[0].getAttribute("ref");
+                console.log("moleculeRef =" + moleculeRef);
+                var moleculeRole = molecules[0].getAttribute("role");
+                console.log("moleculeRole =" + moleculeRole);
+                tproducts += molecules[0].getAttribute("ref");
+                for (let k = 1; k < molecules.length; k++) {
+                  //console.log("molecules[" + k + "] = " + molecules[k]);
+                  //console.log("molecules[" + k + "].length = " + molecules[k].length);
+                  console.log("molecules[" + k + "].nodeName = " + molecules[k].nodeName);
+                  //console.log("molecules[" + k + "].nodeValue = " + molecules[k].nodeValue);
+                  //let cn = molecules[k].childNodes;
+                  //console.log("cn.length =" + cn.length);
+                  moleculeRef = molecules[k].getAttribute("ref");
+                  console.log("moleculeRef =" + moleculeRef);
+                  moleculeRole = molecules[k].getAttribute("role");
+                  console.log("moleculeRole =" + moleculeRole);
+                  //&#43; is the HTML entity for the plus sign.
+                  //tproducts += " &#43; ";
+                  //tproducts += moleculeRef;
+                  tproducts += " " + moleculeRef;
+                }
+              }
+            } else {
+              console.log("elements[" + j + "].nodeName = " + elements[j].nodeName);
+            }
+            //let molecule = reactants[j].getElementsByTagName("molecule");
+            //let moleculeRef = molecule.getAttribute("ref");
+            //treactants += " + " + moleculeRef;
+          }
+          console.log("tproducts =" + tproducts);
+          table += getTR(getTD(id) + getTD(treactants) + getTD(tproducts));
+          console.log("table =" + table);
+          //table += getTR(getTD(id) + getTD(reactants) + getTD(products) + getTD(transitionState) + getTD(preExponential) + getTD(activationEnergy) + getTD(tInfinity) + getTD(nInfinity));
+        }
+      }
+      return table;
+    }
+
+    /**
+     * Generate molecules table.
+     * @param XMLDocument xmlDoc
+     * @return String
+     */
+    function generateMoleculesTable(xmlDoc) {
       var molecules = xmlDoc.getElementsByTagName('molecule');
       console.log("" + molecules.length + " = Number of molecules");
       // Report number of molecules with id and description attributes.
@@ -111,7 +231,6 @@
         if (id != null) {
           console.log("id =" + id);
           let propertyList = molecules[i].getElementsByTagName("propertyList");
-
           for (let j = 0; j < propertyList.length; j++) {
             let property = propertyList[j].getElementsByTagName("property");
             console.log("property.length =" + property.length);
@@ -180,55 +299,8 @@
           }
           table += getTR(getTD(id) + getTD(energy) + getTD(rotationalConstants) + getTD(vibrationalFrequencies));
         }
-        //var atoms = molecules[i].getElementsByTagName("atom");
-        //console.log("Number of atoms=" + atoms.length);
-        //table += parseAtoms(atoms);
-
-        //table += getTR(getTD(molecules[i].getElementsByTagName("atom")));
-        //table += getTR(getTD(molecules[i].getElementsByTagName("bond")));
-        //table += parseProperties(molecules[i].getElementsByTagName("property"));
       }
-      document.getElementById("molecules").innerHTML = getTable(table);
-    }
-
-    /*
-    * Parse atoms.
-    * @param Element[] atoms
-    */
-    function parseAtoms(atoms) {
-      const names = ["ID", "Element Type"];
-      var table = getTH(names);
-      for (let i = 0; i < atoms.length; i++) {
-        table += getTR(getTD(atoms[i].getAttribute("id")) + getTD(atoms[i].getAttribute("elementType")));
-      }
-      console.log(table);
-      return getTable(table);
-    }
-
-    /*
-    * Parses bonds.
-    * @param Element[] bonds 
-    */
-    function parseBonds(bonds) {
-      const names = ["atomRefs2", "order"];
-      var table = getTH(names);
-      for (let i = 0; i < atoms.length; i++) {
-        table += getTR(getTD(bonds[i].atomRefs2) + getTD(bonds[i].order));
-      }
-      console.log(table);
-      return getTable(table);
-    }
-
-    /*
-    * Parse properties
-    */
-    function parseProperties(properties) {
-      const names = ["dictRef", "units", "values"];
-      var table = getTH(names);
-      for (let i = 0; i < properties.length; i++) {
-      }
-      console.log(table);
-      return getTable(table);
+      return table;
     }
 
     /*
@@ -248,6 +320,7 @@
     * @return x wrapped in td tags.
     */
     function getTD(x) {
+      console.log("getTD(" + x + ")");
       return "<td>" + x + "</td>";
     }
 
@@ -256,7 +329,7 @@
     * @return x wrapped in tr tags.
     */
     function getTR(x) {
-      return "<tr>" + x + "</tr>";
+      return "<tr>" + x + "</tr>\n";
     }
 
     /*
@@ -277,11 +350,17 @@
   <!-- Main heading -->
   <h1 id="metitle"></h1>
 
-  <div></div>
+  <!-- Display table for molecules -->
+  <div id="molecules_div">
+    <h2>Molecules</h2>
+    <table id="molecules"></table>
+  </div>
 
-
-  <!-- Display tables for molecules -->
-  <table id="molecules"></table>
+  <!-- Display table for reactions -->
+  <div id="reactions_div">
+    <h2>Reactions</h2>
+    <table id="reactions"></table>
+  </div>
 
 </body>
 
