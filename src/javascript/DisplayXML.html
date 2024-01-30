@@ -1,118 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
-<style>
-table,th,td {
-  border : 1px solid black;
-  border-collapse: collapse;
-}
-th,td {
-  padding: 5px;
-}
-</style>
+
+<head>
+  <title>Display XML</title>
+  <meta charset="utf-8">
+  <style>
+    table,
+    th,
+    td {
+      border: 1px solid black;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 5px;
+    }
+  </style>
+  <script>
+    /**
+     * Load a specific XML File
+     */
+    function loadXML() {
+      console.log("<XMLHttpRequest>");
+      var request = new XMLHttpRequest();
+      console.log("</XMLHttpRequest>");
+      request.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          parse(this);
+        }
+      };
+      request.open("GET", "../../examples/AcetylO2/Acetyl_O2_associationEx.xml", true);
+      request.send();
+    }
+
+    /**
+     * Count the number of elements with a specific attribute.
+     * @param Element[] elements
+     * @param String attribute_name
+     * @return int
+     */
+    function count(elements, attribute_name) {
+      var r = 0;
+      for (var i = 0; i < elements.length; i++) {
+        if (elements[i].getAttribute(attribute_name) != null) {
+          r++;
+        }
+      }
+      return r;
+    }
+
+    /**
+    * Parse the xml.
+    * @param XMLHttpRequest xml
+    */
+    function parse(xml) {
+      console.log("Parsing xml...");
+
+      var xmlDoc = xml.responseXML;
+
+      /**
+       * Log to console and display me.title.
+       */
+      console.log("typeof xmlDoc = " + typeof xmlDoc);
+      console.log("xmlDoc.toString() = " + xmlDoc.toString());
+      let elements = xmlDoc.getElementsByTagName('*');
+      console.log("Number of elements=" + elements.length);
+      for (let i = 0; i < elements.length; i++) {
+        let nn = elements[i].nodeName;
+        //let tn = elements[i].tagName;
+        //let nn = elements[i].getNodeName();
+        if (nn != null) {
+          //console.log("elements[" + i + "].nodeName = " + nn);
+          //console.log("elements[" + i + "].tagName = " + nn);
+          let cn = elements[i].childNodes[0];
+          if (cn != null) {
+            let nv = cn.nodeValue;
+            if (nv != null) {
+              nv = nv.trim();
+              if (nv.length > 0) {
+                if (nn === "me:title") {
+                  document.getElementById("metitle").innerHTML = nv;
+                }
+                //console.log("elements[" + i + "].childNodes[0].nodeValue = " + nv);
+              }
+            }
+          }
+        }
+      }
+      // The following does not work because of the ":" in the tag.
+      //var title = xmlDoc.getElementsByTagName('me:title').nodeValue;
+      //console.log("Title=" + title);
+      //document.getElementById("metitle").innerHTML = title;
+
+      // Process molecules.
+      var molecules = xmlDoc.getElementsByTagName('molecule');
+      console.log("" + molecules.length + " = Number of molecules");
+      // Report number of molecules with id and description attributes.
+      console.log(count(molecules, "id") + " = Number of molecules with ids");
+      console.log(count(molecules, "description") + " = Number of molecules with descriptions");
+      // Prepare table headings.
+      const names = ["Name", "Energy<br>kJ/mol", "Rotational constants<br>cm<sup>-1</sup>", "Vibrational frequencies<br>cm<sup>-1</sup>"];
+      var table = getTH(names);
+      // Process each molecule.
+      for (let i = 0; i < molecules.length; i++) {
+        var energy = "";
+        var rotationalConstants = "";
+        var vibrationalFrequencies = "";
+        let id = molecules[i].getAttribute("id");
+        if (id != null) {
+          console.log("id =" + id);
+          let propertyList = molecules[i].getElementsByTagName("propertyList");
+
+          for (let j = 0; j < propertyList.length; j++) {
+            let property = propertyList[j].getElementsByTagName("property");
+            console.log("property.length =" + property.length);
+            for (let k = 0; k < property.length; k++) {
+              let dictRef = property[k].getAttribute("dictRef");
+              if (dictRef != null) {
+                if (dictRef === "me:ZPE") {
+                  console.log("dictRef =" + dictRef);
+                  let scalar = property[k].getElementsByTagName("scalar");
+                  console.log("scalar =" + scalar);
+                  console.log("scalar.length =" + scalar.length);
+                  let cn = scalar[0].childNodes;
+                  console.log("cn.length =" + cn.length);
+                  for (let l = 0; l < cn.length; l++) {
+                    console.log("cn[" + l + "]");
+                    if (cn[l] != null) {
+                      console.log("cn[" + l + "] =" + cn[l]);
+                      console.log("cn[" + l + "].length =" + cn[l].length);
+                      console.log("cn[" + l + "].nodeName =" + cn[l].nodeName);
+                      console.log("cn[" + l + "].nodeValue =" + cn[l].nodeValue);
+                      energy = cn[l].nodeValue;
+                      console.log("energy =" + energy);
+                    }
+                  }
+                } else if (dictRef === "me:rotConsts") {
+                  console.log("dictRef =" + dictRef);
+                  let array = property[k].getElementsByTagName("array");
+                  console.log("array =" + array);
+                  console.log("array.length =" + array.length);
+                  let cn = array[0].childNodes;
+                  console.log("cn.length =" + cn.length);
+                  for (let l = 0; l < cn.length; l++) {
+                    console.log("cn[" + l + "]");
+                    if (cn[l] != null) {
+                      console.log("cn[" + l + "] =" + cn[l]);
+                      console.log("cn[" + l + "].length =" + cn[l].length);
+                      console.log("cn[" + l + "].nodeName =" + cn[l].nodeName);
+                      console.log("cn[" + l + "].nodeValue =" + cn[l].nodeValue);
+                      rotationalConstants = cn[l].nodeValue;
+                      console.log("rotationalConstants =" + rotationalConstants);
+                    }
+                  }
+                } else if (dictRef === "me:vibFreqs") {
+                  console.log("dictRef =" + dictRef);
+                  let array = property[k].getElementsByTagName("array");
+                  console.log("array =" + array);
+                  console.log("array.length =" + array.length);
+                  let cn = array[0].childNodes;
+                  console.log("cn.length =" + cn.length);
+                  for (let l = 0; l < cn.length; l++) {
+                    console.log("cn[" + l + "]");
+                    if (cn[l] != null) {
+                      console.log("cn[" + l + "] =" + cn[l]);
+                      console.log("cn[" + l + "].length =" + cn[l].length);
+                      console.log("cn[" + l + "].nodeName =" + cn[l].nodeName);
+                      console.log("cn[" + l + "].nodeValue =" + cn[l].nodeValue);
+                      vibrationalFrequencies = cn[l].nodeValue;
+                      console.log("vibrationalFrequencies =" + vibrationalFrequencies);
+                    }
+                  }
+                } else {
+                  console.log("dictRef =" + dictRef);
+                }
+              }
+            }
+          }
+          table += getTR(getTD(id) + getTD(energy) + getTD(rotationalConstants) + getTD(vibrationalFrequencies));
+        }
+        //var atoms = molecules[i].getElementsByTagName("atom");
+        //console.log("Number of atoms=" + atoms.length);
+        //table += parseAtoms(atoms);
+
+        //table += getTR(getTD(molecules[i].getElementsByTagName("atom")));
+        //table += getTR(getTD(molecules[i].getElementsByTagName("bond")));
+        //table += parseProperties(molecules[i].getElementsByTagName("property"));
+      }
+      document.getElementById("molecules").innerHTML = getTable(table);
+    }
+
+    /*
+    * Parse atoms.
+    * @param Element[] atoms
+    */
+    function parseAtoms(atoms) {
+      const names = ["ID", "Element Type"];
+      var table = getTH(names);
+      for (let i = 0; i < atoms.length; i++) {
+        table += getTR(getTD(atoms[i].getAttribute("id")) + getTD(atoms[i].getAttribute("elementType")));
+      }
+      console.log(table);
+      return getTable(table);
+    }
+
+    /*
+    * Parses bonds.
+    * @param Element[] bonds 
+    */
+    function parseBonds(bonds) {
+      const names = ["atomRefs2", "order"];
+      var table = getTH(names);
+      for (let i = 0; i < atoms.length; i++) {
+        table += getTR(getTD(bonds[i].atomRefs2) + getTD(bonds[i].order));
+      }
+      console.log(table);
+      return getTable(table);
+    }
+
+    /*
+    * Parse properties
+    */
+    function parseProperties(properties) {
+      const names = ["dictRef", "units", "values"];
+      var table = getTH(names);
+      for (let i = 0; i < properties.length; i++) {
+      }
+      console.log(table);
+      return getTable(table);
+    }
+
+    /*
+    * @param headings An array of strings.
+    * @return String
+    */
+    function getTH(headings) {
+      var th = "";
+      for (let i = 0; i < headings.length; i++) {
+        th += "<th>" + headings[i] + "</th>"
+      }
+      return getTR(th);
+    }
+
+    /*
+    * @param String x A cell for a table row.
+    * @return x wrapped in td tags.
+    */
+    function getTD(x) {
+      return "<td>" + x + "</td>";
+    }
+
+    /*
+    * @param String x A row for a table.
+    * @return x wrapped in tr tags.
+    */
+    function getTR(x) {
+      return "<tr>" + x + "</tr>";
+    }
+
+    /*
+    * @param String x Table rows for a table.
+    * @return x wrapped in table tags.
+    */
+    function getTable(x) {
+      return "<table>" + x + "</table>";
+    }
+  </script>
+
+</head>
+
 <body>
 
-<button type="button" onclick="loadXML()">Load XML</button>
+  <button type="button" onclick="loadXML()">Load XML</button>
 
-<!-- Display tables for molecules -->
-<table id="atoms"></table>
-<table id="bonds"></table>
-<table id="properties"></table>
+  <!-- Main heading -->
+  <h1 id="metitle"></h1>
 
-<script>
+  <div></div>
 
-/*
-* Load a specific XML File
-*/
-function loadXML() {
-  var xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      parse(this);
-    }
-  };
-  xmlhttp.open("GET", "../../examples/Acetyl_O2_associationEx.xml", true);
-  xmlhttp.send();
-}
 
-/*
-* Parse the xml.
-* @param XMLHttpRequest xml
-*/
-function parse(xml) {
-  var i;
-  var rxml = xml.responseXML;
-  var molecules = document.getElementsByTagName('molecule');
-  for (i = 0; i <molecules.length; i++) { 
-    parse(molecules[i].getElementsByTagName("atom"));
-    parseBonds(molecules[i].getElementsByTagName("bond"));
-    //parseProperties(molecules[i].getElementsByTagName("property"));
-  }
-  document.getElementById("demo").innerHTML = table;
-}
-
-/*
-* Parse atoms.
-* @param Element[] atoms
-*/
-function parseAtoms(atoms) {
-  const names = ["ID", "Element Type"];
-  var table = getTH(names);
-  for (i = 0; i <atoms.length; i++) {
-    table += getTR(getTD(atoms[i].id) + getTD(atoms[i].elementType));
-  }
-  document.getElementById("atoms").innerHTML = table;
-}
-
-/*
-* Parses bonds.
-* @param Element[] bonds 
-*/
-function parseBonds(bonds) {
-  const names = ["atomRefs2", "order"];
-  var table = getTH(names);
-  for (i = 0; i <atoms.length; i++) {
-    table += getTR(getTD(bonds[i].atomRefs2) + getTD(bonds[i].order));
-  }
-  document.getElementById("atoms").innerHTML = table;
-}
-
-/*
-* Parse properties
-*/
-function parseProperties(properties) {
-  const names = ["dictRef", "units", "values"];
-  var table = getTH(names);
-  for (i = 0; i <atoms.length; i++) {
-    table += getTR(getTD(bonds[i].atomRefs2) + getTD(bonds[i].atomRefs2.));
-  }
-  document.getElementById("atoms").innerHTML = table;
-}
-
-/*
-* @param headings An array of strings.
-* @return String
-*/
-function getTH(headings) {
-  var th = "";
-  for (i = 0; i <names.length; i++) {
-    th += "<th>" + names[i] + "</th>"
-  }
-  return addTR(th);
-}
-
-/*
-* @param x A string.
-* @return 
-*/
-function getTD(x) {
-  return "<td>" + x + "</td>";
-}
-
-function getTR(x) {
-  return "<tr>" + x + "</tr>";
-}
-
-</script>
+  <!-- Display tables for molecules -->
+  <table id="molecules"></table>
 
 </body>
+
 </html>

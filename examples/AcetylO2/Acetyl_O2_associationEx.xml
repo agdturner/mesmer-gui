@@ -5,15 +5,6 @@
            xmlns:me="http://www.chem.leeds.ac.uk/mesmer"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <me:title> Acetyl O2 association</me:title>
-
-  <script>
-var fileContent = "My epic novel that I don't want to lose.";
-var bb = new Blob([fileContent ], { type: 'text/plain' });
-var a = document.createElement('a');
-a.download = 'download.txt';
-a.href = window.URL.createObjectURL(bb);
-a.click();
-  </script>
   <moleculeList>
     <molecule id="acetyl" description="CH_3CO">
       <atomArray>
