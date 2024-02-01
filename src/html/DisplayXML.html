@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Display XML</title>
+  <meta charset="utf-8">
+  <style>
+    table,
+    th,
+    td {
+      border: 1px solid black;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 5px;
+    }
+  </style>
+  <script src="../scripts/load_xml.js"></script>
+</head>
+
+<body>
+
+  <button type="button" onclick="load('/src/data/examples/AcetylO2/Acetyl_O2_associationEx.xml')">Load XML</button>
+
+  <!-- Main heading -->
+  <h1 id="metitle"></h1>
+
+  <!-- Display table for molecules -->
+  <div id="molecules_div">
+    <h2>Molecules</h2>
+    <table id="molecules"></table>
+  </div>
+
+  <!-- Display table for reactions -->
+  <div id="reactions_div">
+    <h2>Reactions</h2>
+    <table id="reactions"></table>
+  </div>
+
+</body>
+
+</html>
