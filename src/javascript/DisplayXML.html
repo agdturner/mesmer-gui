@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+table,th,td {
+  border : 1px solid black;
+  border-collapse: collapse;
+}
+th,td {
+  padding: 5px;
+}
+</style>
+<body>
+
+<button type="button" onclick="loadXML()">Load XML</button>
+
+<!-- Display tables for molecules -->
+<table id="atoms"></table>
+<table id="bonds"></table>
+<table id="properties"></table>
+
+<script>
+
+/*
+* Load a specific XML File
+*/
+function loadXML() {
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      parse(this);
+    }
+  };
+  xmlhttp.open("GET", "../../examples/Acetyl_O2_associationEx.xml", true);
+  xmlhttp.send();
+}
+
+/*
+* Parse the xml.
+* @param XMLHttpRequest xml
+*/
+function parse(xml) {
+  var i;
+  var rxml = xml.responseXML;
+  var molecules = document.getElementsByTagName('molecule');
+  for (i = 0; i <molecules.length; i++) { 
+    parse(molecules[i].getElementsByTagName("atom"));
+    parseBonds(molecules[i].getElementsByTagName("bond"));
+    //parseProperties(molecules[i].getElementsByTagName("property"));
+  }
+  document.getElementById("demo").innerHTML = table;
+}
+
+/*
+* Parse atoms.
+* @param Element[] atoms
+*/
+function parseAtoms(atoms) {
+  const names = ["ID", "Element Type"];
+  var table = getTH(names);
+  for (i = 0; i <atoms.length; i++) {
+    table += getTR(getTD(atoms[i].id) + getTD(atoms[i].elementType));
+  }
+  document.getElementById("atoms").innerHTML = table;
+}
+
+/*
+* Parses bonds.
+* @param Element[] bonds 
+*/
+function parseBonds(bonds) {
+  const names = ["atomRefs2", "order"];
+  var table = getTH(names);
+  for (i = 0; i <atoms.length; i++) {
+    table += getTR(getTD(bonds[i].atomRefs2) + getTD(bonds[i].order));
+  }
+  document.getElementById("atoms").innerHTML = table;
+}
+
+/*
+* Parse properties
+*/
+function parseProperties(properties) {
+  const names = ["dictRef", "units", "values"];
+  var table = getTH(names);
+  for (i = 0; i <atoms.length; i++) {
+    table += getTR(getTD(bonds[i].atomRefs2) + getTD(bonds[i].atomRefs2.));
+  }
+  document.getElementById("atoms").innerHTML = table;
+}
+
+/*
+* @param headings An array of strings.
+* @return String
+*/
+function getTH(headings) {
+  var th = "";
+  for (i = 0; i <names.length; i++) {
+    th += "<th>" + names[i] + "</th>"
+  }
+  return addTR(th);
+}
+
+/*
+* @param x A string.
+* @return 
+*/
+function getTD(x) {
+  return "<td>" + x + "</td>";
+}
+
+function getTR(x) {
+  return "<tr>" + x + "</tr>";
+}
+
+</script>
+
+</body>
+</html>
