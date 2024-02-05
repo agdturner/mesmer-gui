@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "parcel html/DisplayXML.html",
-    "build": "parcel build html/DisplayXML.html"
+    "dev": "parcel html/TestChart.html",
+    "build": "parcel build html/TestChart.html"
   },
   "devDependencies": {
     "parcel": "^2.6.2"

@@ -24,19 +24,29 @@
 
   <button type="button" onclick="load('/src/data/examples/AcetylO2/Acetyl_O2_associationEx.xml')">Load XML</button>
 
-  <!-- Main heading -->
+  <!-- Main heading. -->
   <h1 id="metitle"></h1>
 
-  <!-- Display table for molecules -->
+  <!-- Display table for molecules. -->
   <div id="molecules_div">
     <h2>Molecules</h2>
     <table id="molecules"></table>
   </div>
 
-  <!-- Display table for reactions -->
+  <!-- Display table for reactions. -->
   <div id="reactions_div">
     <h2>Reactions</h2>
+    <h3>Table</h3>
     <table id="reactions"></table>
+    <!-- Display Well Diagram. -->
+    <h3>Diagram</h3>
+    <canvas id="diagram" width="400" height="400" style="border:1px solid grey"></canvas>
+  </div>
+
+  <!-- The XML being parsed. -->
+  <div id="xml_div">
+    <h2>XML</h2>
+    <p id="xml_text"></p>
   </div>
 
 </body>
