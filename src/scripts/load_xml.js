@@ -1,7 +1,187 @@
 /**
+ * A class for representing an atom.
+ * @param {String} id The id of the atom.
+ * @param {String} elementType The element type of the atom.
+ */
+class Atom {
+  constructor(id, elementType) {
+    this.id = id;
+    this.elementType = elementType;
+  }
+}
+
+/**
+ * A class for representing an atomic bond - a bond beteen two atoms.
+ * @param {Atom} atomA One atom.
+ * @param {Atom} atomB Another atom.
+ * @param {String} order The order of the bond.
+ */
+class Bond {
+  constructor(atomA, atomB, order) {
+    this.atomA = atomA;
+    this.atomB = atomB;
+    this.order = order;
+  }
+}
+
+/**
+ * A class for representing a molecule.
+ * @param {String} id The id of the molecule.
+ * @param {String} description The description of the molecule.
+ * @param {Atom[]} atomArray An array of atoms.
+ * @param {Bond[]} bondArray An array of bonds.
+ * @param {Map} properties A map of properties.
+ * @param {String} DOSCMethod The principal external rotational states method for calculating density of states.
+ */
+class Molecule {
+  constructor(id, description, atomArray, bondArray, properties, DOSCMethod) {
+    this.id = id;
+    this.description = description;
+    this.atomArray = atomArray;
+    this.bondArray = bondArray;
+    this.properties = properties;
+    this.DOSCMethod = DOSCMethod;
+  } 
+}
+
+/**
+ * A class for representing a reactant in a reaction.
+ * @param {Molecule} molecule The molecule.
+ * @param {String} role The role of the molecule.
+ */
+class Reactant {
+  constructor(molecule, role) {
+    this.molecule = molecule;
+    this.role = role;
+  }
+}
+
+/**
+ * A class for representing a product in a reaction.
+ * @param {Molecule} molecule The molecule.
+ * @param {String} role The role of the molecule.
+ */
+class Product {
+  constructor(molecule, role) {
+    this.molecule = molecule;
+    this.role = role;
+  }
+}
+
+/**
+ * A class for representing a transition state.
+ * @param {Molecule} molecule The molecule.
+ * @param {String} role The role of the molecule.
+ */
+class TransitionState {
+  constructor(molecule, role) {
+    this.molecule = molecule;
+    this.role = role;
+  }
+}
+
+/**
+ * A class for representing MCRCTypes - microcanonical rate constant types.
+ * @param {String} type The type of the microcanonical rate constant.
+ */
+class MCRCType {
+  constructor(type) {
+    this.type = type;
+  }
+}
+
+/**
+ * A class for representing the inverse Laplace transform (ILT) type of microcanonical rate constant.
+ */
+class MesmerILT extends MCRCType {
+  constructor(type, preExponential, activationEnergy, TInfinity, nInfinity) {
+    super(type);
+    this.preExponential = preExponential;
+    this.activationEnergy = activationEnergy;
+    this.TInfinity = TInfinity;
+    this.nInfinity = nInfinity;
+  }
+}
+
+class PreExponential {
+  constructor(value, units, lower, upper, stepsize) {
+    this.value = value;
+    this.units = units;
+    this.lower = lower;
+    this.upper = upper;
+    this.stepsize = stepsize;
+  }
+}
+
+class ActivationEnergy {
+  constructor(value, units) {
+    this.value = value;
+    this.units = units;
+  }
+}
+
+class NInfinity {
+  constructor(value, lower, upper, stepsize) {
+    this.value = value;
+    this.lower = lower;
+    this.upper = upper;
+    this.stepsize = stepsize;
+  }
+}
+
+/**
+ * A class for representing the inverse Laplace transform (ILT) type of microcanonical rate constant.
+ * @param {String} type The type of the microcanonical rate constant.
+ * @param {PreExponential} preExponential The pre-exponential factor.
+ * @param {ActivationEnergy} activationEnergy The activation energy.
+ * @param {Number} TInfinity The TInfinity.
+ * @param {NInfinity} nInfinity The nInfinity.
+ */
+class MesmerILT extends MCRCType {
+  constructor(type, preExponential, activationEnergy, TInfinity, nInfinity) {
+    super(type);
+    this.preExponential = preExponential;
+    this.activationEnergy = activationEnergy;
+    this.TInfinity = TInfinity;
+    this.nInfinity = nInfinity;
+  }
+}
+
+/**
+ * A class for representing the MCRCMethod specification, which indicates how microcanonical rate constant, 
+ * k(E) is to be treated for a particular reaction.
+ */
+class MCRCMethod {
+  constructor(name, type, preExponential, activationEnergy, TInfinity, nInfinity) {
+    this.name = name;
+    this.type = type;
+  }
+}
+
+/**
+ * A class for representing a reaction.
+ * @param {String} id The id of the reaction.
+ * @param {Reactant[]} reactants The reactants in the reaction.
+ * @param {Product[]} products The products of the reaction.
+ * @param {Bond[]} bondArray An array of bonds.
+ * @param {Map} properties A map of properties.
+ * @param {String} DOSCMethod The principal external rotational states method for calculating density of states.
+ */
+class Reaction {
+  constructor(id, reactants, products, bondArray, properties, DOSCMethod) {
+    this.id = id;
+    this.description = description;
+    this.atomArray = atomArray;
+    this.bondArray = bondArray;
+    this.properties = properties;
+    this.DOSCMethod = DOSCMethod;
+  } 
+}
+
+/**
  * A map of molecule id to energy.
  */
-const moleculeEnergy = new Map([]);
+const moleculeEnergies = new Map([]);
 
 /**
  * For storing the maximum molecule energy in a reaction.
@@ -15,8 +195,34 @@ var minMoleculeEnergy = Infinity;
 
 /**
  * A map of reaction id to a map of reaction information.
+ * This includes a reactionMap with the following keys and values:
+ * key, value
+ * "reactants", reactants
+ * "reactantLabel", treactants
+ * "products", products
+ * "productsLabel", tproducts
+ * "transitionState", ttransitionState
+ * "preExponential", tpreExponential
+ * "activationEnergy", tactivationEnergy
+ * "tInfinity", ttInfinity
+ * "nInfinity", tnInfinity
  */
 const reactionsInformation = new Map([]);
+
+/**
+ * A map of products to transition state.
+ */
+const productsToTransitionState = new Map([]);
+
+/**
+ * A map of reactantToTransitionStates.
+ */
+const reactantToTransitionStates = new Map([]);
+
+/**
+ * A set of transition ids.
+ */
+const transitions = new Set([]);
 
 /**
  * A set of inactive molecule ids.
@@ -278,15 +484,23 @@ function parseReactions(xml) {
           //console.log("moleculeRef = " + moleculeRef);
           let moleculeRole = molecules[0].getAttribute("role");
           //console.log("moleculeRole = " + moleculeRole);
-          if (ttransitionState === "") {
-            ttransitionState += moleculeRef;
+          ttransitionState = moleculeRef;
+          transitions.add(ttransitionState);
+          if (reactantToTransitionStates.has(treactants)) {
+            console.log("Adding transition state " + ttransitionState);
+            reactantToTransitionStates.get(treactants).add(ttransitionState);
           } else {
-            ttransitionState += " + " + moleculeRef;
+            console.log("Adding transition states and transition " + ttransitionState);
+            ts = new Set([]);
+            ts.add(ttransitionState);
+            reactantToTransitionStates.set(treactants, ts);
           }
         } else {
           //console.log("elements[" + j + "].nodeName = " + elements[j].nodeName);
         }
       }
+      productsToTransitionState.set(tproducts, ttransitionState);
+      transitions.add(ttransitionState);
       reactionMap.set("reactants", reactants);
       reactionMap.set("reactantLabel", treactants);
       reactionMap.set("products", products);
@@ -310,23 +524,23 @@ function parseReactions(xml) {
   }
   //console.log("table = " + table);
   console.log("Reactions:");
-  reactionsInformation.forEach (function(reactionMap, id) {
-    console.log(id);
-    reactionMap.forEach (function (v, k) {
+  reactionsInformation.forEach(function (reactionMap, id) {
+    //console.log(id);
+    reactionMap.forEach(function (v, k) {
       if (v instanceof Set) {
-        console.log(k + ' = ' + Array.from(v));
+        //console.log(k + ' = ' + Array.from(v));
       } else {
-        console.log(k + ' = ' + v);
+        //console.log(k + ' = ' + v);
       }
     })
   })
-  console.log("Returning table...");
+  //console.log("Returning table...");
   return table;
 }
 
 /**
  * Generate molecules table.
- * Initialise the moleculeEnergy Map.
+ * Initialise the moleculeEnergies Map.
  * @param XMLDocument xml
  * @return String
  */
@@ -376,7 +590,7 @@ function parseMolecules(xml) {
                   //console.log("cn[" + l + "].nodeValue =" + cn[l].nodeValue);
                   energy = cn[l].nodeValue;
                   let energyFloat = parseFloat(energy);
-                  moleculeEnergy.set(id, energyFloat);
+                  moleculeEnergies.set(id, energyFloat);
                   minMoleculeEnergy = Math.min(minMoleculeEnergy, energyFloat);
                   maxMoleculeEnergy = Math.max(maxMoleculeEnergy, energyFloat);
                   //console.log("energy =" + energy);
@@ -428,15 +642,15 @@ function parseMolecules(xml) {
     }
   }
   //console.log("table =" + table);
-  console.log("Molecule Energy:");
-  moleculeEnergy.forEach (function(value, key) {
+  console.log("Molecule Energies:");
+  moleculeEnergies.forEach(function (value, key) {
     console.log(key + ' = ' + value);
   })
   console.log("minMoleculeEnergy = " + minMoleculeEnergy);
   console.log("maxMoleculeEnergy = " + maxMoleculeEnergy);
-  
+
   console.log("Inactive Molecules:");
-  inactiveMolecules.forEach (function(value) {
+  inactiveMolecules.forEach(function (value) {
     console.log(value);
   })
 
@@ -518,37 +732,181 @@ function createDiagram() {
   console.log("canvas.height = " + canvas.height);
   ctx.transform(1, 0, 0, -1, 0, canvas.height)
 
+  // Get text height for font size.
+  let th = getTextHeight(ctx, "Aj");
+  console.log("th = " + th);
+
+  let black = "black";
+  let green = "green";
+
+  /**
+   * The number of reactions and transitions.
+   */
+  var nReactionsAndTransitions = reactionsInformation.size + transitions.size;
+  console.log("nReactionsAndTransitions = " + nReactionsAndTransitions);
+
   let xMax = canvas.height;
   let slope = 0.5;
-  let intercept = null;
 
   //let firstReaction = reactionsInformation.entries().next().key;
   //console.log("firstReaction = " + firstReaction);
-  //let intercept = moleculeEnergy.get(firstReaction);
+  //let intercept = moleculeEnergies.get(firstReaction);
+
+  let x00 = 0;
+  let y00 = null;
 
   // Go through reactionInformation and draw lines.
-  reactionsInformation.forEach (function(reactionMap, id) {
-    //console.log("id = " + id);
+  reactionsInformation.forEach(function (reactionMap, id) {
+    console.log("id = " + id);
     let reactants = reactionMap.get("reactants");
-    if (intercept == null) {
-      let firstReactant = reactants.values().next().value;
-      console.log("firstReactant = " + firstReactant);
-      intercept = moleculeEnergy.get(firstReactant);
-      console.log("moleculeEnergy = " + intercept);
+    let firstReactant = reactants.values().next().value;
+    console.log("firstReactant = " + firstReactant);
+    let reactantLabel = reactionMap.get("reactantLabel");
+    console.log("reactantLabel = " + reactantLabel);
+    let y01 = moleculeEnergies.get(firstReactant);
+    console.log("moleculeEnergy = " + y01);
+    // Get text width.
+    let tw = Math.max(getTextWidth(ctx, y01), getTextWidth(ctx, reactantLabel));
+    console.log("tw = " + tw);
+    let x01 = x00 + tw;
+    if (y00 == null) {
+      y00 = y01;
+      // Draw horizontal line and add label.
+      drawLevel(ctx, green, 4, x00, y00, x01, y01, th, reactantLabel);
+      x00 = x01;
+      let x0 = x01;
+      let y0 = y01;
+      // Get Product
+      let products = reactionMap.get("products");
+      console.log("products = " + products);
+      console.log("products.size = " + products.size);
+      let i = 0;
+      reactionMap.get("products").forEach(function (product) {
+        console.log("product = " + product);
+        i ++;
+        let y1 = moleculeEnergies.get(product);
+        if (y1 == null) {
+          console.log("y1 = " + y1);
+          throw "exit";
+        } else {
+          let x1 = x0 + (tw * i);
+          console.log("moleculeEnergy = " + y1);
+          // Draw connector line.
+          drawLine(ctx, black, 2, x0, y0, x1, y1);
+          x0 = x1;
+          x1 = x0 + tw;
+          y0 = y1;
+          throw "exit";
+        }
+      });
+    } else {
+      let tss = reactantToTransitionStates.get(reactantLabel);
+      if (tss != null) {
+        let x0 = x01;
+        let y0 = y01;
+        let i = 0;
+        // Iterate over each transition state.
+        tss.forEach(function (ts) {
+          i++;
+          console.log("ts = " + ts);
+          let y1 = moleculeEnergies.get(ts);
+          let x1 = x0 + (tw * i);
+          console.log("moleculeEnergy = " + y1);
+          tw = Math.max(getTextWidth(ctx, y1), getTextWidth(ctx, ts));
+          reactantLabel = ts;
+          // Draw connector line.
+          drawLine(ctx, black, 2, x0, y0, x1, y1);
+          x0 = x1;
+          x1 = x0 + tw;
+          y0 = y1;
+          // Draw horizontal line and add label.
+          drawLevel(ctx, green, 4, x0, y0, x1, y1, th, reactantLabel);
+          x0 = x1;
+        });
+      } else {
+        // Draw connector line.
+        drawLine(ctx, black, 2, x00, y00, x01, y01);
+        x00 = x01;
+        x01 = x00 + tw;
+        y00 = y01;
+        // Draw horizontal line and add label.
+        drawLevel(ctx, green, 4, x00, y00, x01, y00, th, reactantLabel);
+        x00 = x01;
+      }
     }
-    //reactionMap.forEach (function (v, k) {
-    //    console.log(k + ' = ' + v);
-    //})
   })
   console.log(intercept);
-
-  ctx.moveTo(0, intercept);
-  ctx.lineTo(xMax, f(xMax));
-  ctx.strokeStyle = "black";
-  ctx.stroke();
 
   function f(x) {
     return x * slope + intercept;
   }
   return canvas
+}
+
+function drawLevel(ctx, strokeStyle, strokewidth, x0, y0, x1, y1, th, reactantLabel) {
+  writeText(ctx, y1, strokeStyle, x0, y1 + th);
+  writeText(ctx, reactantLabel, strokeStyle, x0, y1 - th);
+  drawLine(ctx, strokeStyle, strokewidth, x0, y0, x1, y1);
+}
+
+/**
+ * Draw a line (segment) on the canvas.
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {String} strokeStyle The name of a color or a gradient to use for the lines.
+ * @param {Integer} x1 The start x-coordinate of the line.
+ * @param {Integer} y1 The start y-coordinate of the line.
+ * @param {Integer} x2 The end x-coordinate of the line.
+ * @param {Integer} y2 The end y-coordinate of the line.
+ */
+function drawLine(ctx, strokeStyle, strokewidth, x1, y1, x2, y2) {
+  // Save the context (to restore after).
+  ctx.save();
+  ctx.strokeStyle = strokeStyle;
+  ctx.lineWidth = strokewidth;
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  // Restore the context.
+  ctx.restore();
+}
+
+/**
+ * Writes text to the canvas. (It is probably better to write all the labels in one go.)
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {String} text
+ * @param {Integer} x The position of the text.
+ * @returns The height of the text in pixels.
+ */
+function writeText(ctx, text, colour, x, y) {
+  // Save the context (to restore after).
+  ctx.save();
+  // Translate to the point where text is to be added.
+  ctx.translate(x, y);
+  // Invert Y-axis.
+  ctx.scale(1, -1);
+  // Set the text colour.
+  ctx.fillStyle = colour;
+  // Write the text.
+  ctx.fillText(text, 0, 0);
+  // Restore the context.
+  ctx.restore();
+}
+
+/**
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {String} text 
+ * @returns The height of the text in pixels.
+ */
+function getTextHeight(ctx, text) {
+  var fontMetric = ctx.measureText(text);
+  return fontMetric.actualBoundingBoxAscent + fontMetric.actualBoundingBoxDescent;
+}
+
+/**
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {String} text 
+ * @returns The width of the text in pixels.
+ */
+function getTextWidth(ctx, text) {
+  return ctx.measureText(text).width;
 }
