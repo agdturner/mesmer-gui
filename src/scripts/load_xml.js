@@ -1,187 +1,32 @@
-/**
- * A class for representing an atom.
- * @param {String} id The id of the atom.
- * @param {String} elementType The element type of the atom.
- */
-class Atom {
-  constructor(id, elementType) {
-    this.id = id;
-    this.elementType = elementType;
-  }
-}
+import { 
+  Atom, 
+  Bond, 
+  PropertyArray, 
+  PropertyScalar, 
+  Molecule, 
+  Reactant, 
+  Product, 
+  TransitionState, 
+  MCRCType, 
+  PreExponential, 
+  ActivationEnergy, 
+  NInfinity, 
+  MesmerILT, 
+  MCRCMethod, 
+  ZhuNakamuraCrossing, 
+  SumOfStates, 
+  SumOfStatesPoint, 
+  DefinedSumOfStates, 
+  Reaction, 
+  PTpair, 
+  Conditions, 
+  GrainSize 
+} from "./classes.js";
 
 /**
- * A class for representing an atomic bond - a bond beteen two atoms.
- * @param {Atom} atomA One atom.
- * @param {Atom} atomB Another atom.
- * @param {String} order The order of the bond.
+ * A map of molecules with Molecule.id as key and Molecules as values.
  */
-class Bond {
-  constructor(atomA, atomB, order) {
-    this.atomA = atomA;
-    this.atomB = atomB;
-    this.order = order;
-  }
-}
-
-/**
- * A class for representing a molecule.
- * @param {String} id The id of the molecule.
- * @param {String} description The description of the molecule.
- * @param {Atom[]} atomArray An array of atoms.
- * @param {Bond[]} bondArray An array of bonds.
- * @param {Map} properties A map of properties.
- * @param {String} DOSCMethod The principal external rotational states method for calculating density of states.
- */
-class Molecule {
-  constructor(id, description, atomArray, bondArray, properties, DOSCMethod) {
-    this.id = id;
-    this.description = description;
-    this.atomArray = atomArray;
-    this.bondArray = bondArray;
-    this.properties = properties;
-    this.DOSCMethod = DOSCMethod;
-  } 
-}
-
-/**
- * A class for representing a reactant in a reaction.
- * @param {Molecule} molecule The molecule.
- * @param {String} role The role of the molecule.
- */
-class Reactant {
-  constructor(molecule, role) {
-    this.molecule = molecule;
-    this.role = role;
-  }
-}
-
-/**
- * A class for representing a product in a reaction.
- * @param {Molecule} molecule The molecule.
- * @param {String} role The role of the molecule.
- */
-class Product {
-  constructor(molecule, role) {
-    this.molecule = molecule;
-    this.role = role;
-  }
-}
-
-/**
- * A class for representing a transition state.
- * @param {Molecule} molecule The molecule.
- * @param {String} role The role of the molecule.
- */
-class TransitionState {
-  constructor(molecule, role) {
-    this.molecule = molecule;
-    this.role = role;
-  }
-}
-
-/**
- * A class for representing MCRCTypes - microcanonical rate constant types.
- * @param {String} type The type of the microcanonical rate constant.
- */
-class MCRCType {
-  constructor(type) {
-    this.type = type;
-  }
-}
-
-/**
- * A class for representing the inverse Laplace transform (ILT) type of microcanonical rate constant.
- */
-class MesmerILT extends MCRCType {
-  constructor(type, preExponential, activationEnergy, TInfinity, nInfinity) {
-    super(type);
-    this.preExponential = preExponential;
-    this.activationEnergy = activationEnergy;
-    this.TInfinity = TInfinity;
-    this.nInfinity = nInfinity;
-  }
-}
-
-class PreExponential {
-  constructor(value, units, lower, upper, stepsize) {
-    this.value = value;
-    this.units = units;
-    this.lower = lower;
-    this.upper = upper;
-    this.stepsize = stepsize;
-  }
-}
-
-class ActivationEnergy {
-  constructor(value, units) {
-    this.value = value;
-    this.units = units;
-  }
-}
-
-class NInfinity {
-  constructor(value, lower, upper, stepsize) {
-    this.value = value;
-    this.lower = lower;
-    this.upper = upper;
-    this.stepsize = stepsize;
-  }
-}
-
-/**
- * A class for representing the inverse Laplace transform (ILT) type of microcanonical rate constant.
- * @param {String} type The type of the microcanonical rate constant.
- * @param {PreExponential} preExponential The pre-exponential factor.
- * @param {ActivationEnergy} activationEnergy The activation energy.
- * @param {Number} TInfinity The TInfinity.
- * @param {NInfinity} nInfinity The nInfinity.
- */
-class MesmerILT extends MCRCType {
-  constructor(type, preExponential, activationEnergy, TInfinity, nInfinity) {
-    super(type);
-    this.preExponential = preExponential;
-    this.activationEnergy = activationEnergy;
-    this.TInfinity = TInfinity;
-    this.nInfinity = nInfinity;
-  }
-}
-
-/**
- * A class for representing the MCRCMethod specification, which indicates how microcanonical rate constant, 
- * k(E) is to be treated for a particular reaction.
- */
-class MCRCMethod {
-  constructor(name, type, preExponential, activationEnergy, TInfinity, nInfinity) {
-    this.name = name;
-    this.type = type;
-  }
-}
-
-/**
- * A class for representing a reaction.
- * @param {String} id The id of the reaction.
- * @param {Reactant[]} reactants The reactants in the reaction.
- * @param {Product[]} products The products of the reaction.
- * @param {Bond[]} bondArray An array of bonds.
- * @param {Map} properties A map of properties.
- * @param {String} DOSCMethod The principal external rotational states method for calculating density of states.
- */
-class Reaction {
-  constructor(id, reactants, products, bondArray, properties, DOSCMethod) {
-    this.id = id;
-    this.description = description;
-    this.atomArray = atomArray;
-    this.bondArray = bondArray;
-    this.properties = properties;
-    this.DOSCMethod = DOSCMethod;
-  } 
-}
-
-/**
- * A map of molecule id to energy.
- */
-const moleculeEnergies = new Map([]);
+const molecules = new Map([]);
 
 /**
  * For storing the maximum molecule energy in a reaction.
@@ -194,40 +39,9 @@ var maxMoleculeEnergy = -Infinity;
 var minMoleculeEnergy = Infinity;
 
 /**
- * A map of reaction id to a map of reaction information.
- * This includes a reactionMap with the following keys and values:
- * key, value
- * "reactants", reactants
- * "reactantLabel", treactants
- * "products", products
- * "productsLabel", tproducts
- * "transitionState", ttransitionState
- * "preExponential", tpreExponential
- * "activationEnergy", tactivationEnergy
- * "tInfinity", ttInfinity
- * "nInfinity", tnInfinity
+ * A map of reactions with Reaction.id as keys and Reactions as values.
  */
-const reactionsInformation = new Map([]);
-
-/**
- * A map of products to transition state.
- */
-const productsToTransitionState = new Map([]);
-
-/**
- * A map of reactantToTransitionStates.
- */
-const reactantToTransitionStates = new Map([]);
-
-/**
- * A set of transition ids.
- */
-const transitions = new Set([]);
-
-/**
- * A set of inactive molecule ids.
- */
-const inactiveMolecules = new Set([]);
+const reactions = new Map([]);
 
 /**
  * Load a specific XML File
@@ -256,9 +70,7 @@ function load(xmlFile) {
       let text = serializer.serializeToString(xml);
       console.log("text = " + text);
       document.getElementById("xml_text").innerHTML = XMLToHTML(text);
-
-      console.log("xml = " + xml);
-
+      //console.log("xml = " + xml);
       parse(xml);
     }
   };
@@ -304,7 +116,7 @@ function parse(xml) {
   console.log("typeof(xml) = " + typeof (xml));
   console.log("xml.toString() = " + xml.toString());
   let elements = xml.getElementsByTagName('*');
-  console.log("Number of elements=" + elements.length);
+  console.log("Number of elements ="  + elements.length);
   for (let i = 0; i < elements.length; i++) {
     let nn = elements[i].nodeName;
     //let tn = elements[i].tagName;
@@ -355,16 +167,17 @@ function parse(xml) {
  * @return String
  */
 function parseReactions(xml) {
-  var reactions = xml.getElementsByTagName('reaction');
-  console.log("" + reactions.length + " = Number of reactions");
+  let xml_reactions = xml.getElementsByTagName("reaction");
+  let xml_reactions_length = xml_reactions.length);
+  console.log("Number of xml reaction elements = " + xml_reactions_length);
   // Report number of reactions with id attributes.
-  console.log(count(reactions, "id") + " = Number of reactions with ids");
+  console.log("Number of xml reaction elements with ids = " + count(xml_reactions, "id"));
   // Prepare table headings.
   names = ["ID", "Reactants", "Products", "Transition State", "PreExponential", "Activation Energy", "TInfinity", "NInfinity"];
   var table = getTH(names);
   // Process each reaction.
-  for (let i = 0; i < reactions.length; i++) {
-    let id = reactions[i].getAttribute("id");
+  for (let i = 0; i < xml_reactions_length; i++) {
+    let id = xml_reactions[i].getAttribute("id");
     var treactants = "";
     var tproducts = "";
     var ttransitionState = "";
@@ -545,101 +358,115 @@ function parseReactions(xml) {
  * @return String
  */
 function parseMolecules(xml) {
-  var molecules = xml.getElementsByTagName('molecule');
-  console.log("" + molecules.length + " = Number of molecules");
-  // Report number of molecules with id and description attributes.
-  console.log(count(molecules, "id") + " = Number of molecules with ids");
-  //console.log(count(molecules, "description") + " = Number of molecules with descriptions");
+  let xml_molecules = xml.getElementsByTagName('moleculeList').getElementsByTagName('molecule');
+  let xml_molecules_length = xml_molecules.length;
+  console.log("Number of molecules = " + xml_molecules_length);
   // Prepare table headings.
   const names = ["Name", "Energy<br>kJ/mol", "Rotational constants<br>cm<sup>-1</sup>", "Vibrational frequencies<br>cm<sup>-1</sup>"];
   var table = getTH(names);
   // Process each molecule.
-  for (let i = 0; i < molecules.length; i++) {
+  for (let i = 0; i < xml_molecules.length; i++) {
     var energy = "";
     var rotationalConstants = "";
     var vibrationalFrequencies = "";
-    let id = molecules[i].getAttribute("id");
-    if (id != null) {
-      let active = molecules[i].getAttribute("active");
-      if (active != null) {
-        if (active === "false") {
-          inactiveMolecules.add(id);
-        }
-      }
-      //console.log("id =" + id);
-      let propertyList = molecules[i].getElementsByTagName("propertyList");
-      for (let j = 0; j < propertyList.length; j++) {
-        let property = propertyList[j].getElementsByTagName("property");
-        //console.log("property.length =" + property.length);
-        for (let k = 0; k < property.length; k++) {
-          let dictRef = property[k].getAttribute("dictRef");
-          if (dictRef != null) {
-            if (dictRef === "me:ZPE") {
-              //console.log("dictRef =" + dictRef);
-              let scalar = property[k].getElementsByTagName("scalar");
-              //console.log("scalar =" + scalar);
-              //console.log("scalar.length =" + scalar.length);
-              let cn = scalar[0].childNodes;
-              //console.log("cn.length =" + cn.length);
-              for (let l = 0; l < cn.length; l++) {
-                //console.log("cn[" + l + "]");
-                if (cn[l] != null) {
-                  //console.log("cn[" + l + "] =" + cn[l]);
-                  //console.log("cn[" + l + "].length =" + cn[l].length);
-                  //console.log("cn[" + l + "].nodeName =" + cn[l].nodeName);
-                  //console.log("cn[" + l + "].nodeValue =" + cn[l].nodeValue);
-                  energy = cn[l].nodeValue;
-                  let energyFloat = parseFloat(energy);
-                  moleculeEnergies.set(id, energyFloat);
-                  minMoleculeEnergy = Math.min(minMoleculeEnergy, energyFloat);
-                  maxMoleculeEnergy = Math.max(maxMoleculeEnergy, energyFloat);
-                  //console.log("energy =" + energy);
-                }
-              }
-            } else if (dictRef === "me:rotConsts") {
-              //console.log("dictRef =" + dictRef);
-              let array = property[k].getElementsByTagName("array");
-              //console.log("array =" + array);
-              //console.log("array.length =" + array.length);
-              let cn = array[0].childNodes;
-              //console.log("cn.length =" + cn.length);
-              for (let l = 0; l < cn.length; l++) {
-                //console.log("cn[" + l + "]");
-                if (cn[l] != null) {
-                  //console.log("cn[" + l + "] =" + cn[l]);
-                  //console.log("cn[" + l + "].length =" + cn[l].length);
-                  //console.log("cn[" + l + "].nodeName =" + cn[l].nodeName);
-                  //console.log("cn[" + l + "].nodeValue =" + cn[l].nodeValue);
-                  rotationalConstants = cn[l].nodeValue;
-                  //console.log("rotationalConstants =" + rotationalConstants);
-                }
-              }
-            } else if (dictRef === "me:vibFreqs") {
-              //console.log("dictRef =" + dictRef);
-              let array = property[k].getElementsByTagName("array");
-              //console.log("array =" + array);
-              //console.log("array.length =" + array.length);
-              let cn = array[0].childNodes;
-              //console.log("cn.length =" + cn.length);
-              for (let l = 0; l < cn.length; l++) {
-                //console.log("cn[" + l + "]");
-                if (cn[l] != null) {
-                  //console.log("cn[" + l + "] =" + cn[l]);
-                  //console.log("cn[" + l + "].length =" + cn[l].length);
-                  //console.log("cn[" + l + "].nodeName =" + cn[l].nodeName);
-                  //console.log("cn[" + l + "].nodeValue =" + cn[l].nodeValue);
-                  vibrationalFrequencies = cn[l].nodeValue;
-                  //console.log("vibrationalFrequencies =" + vibrationalFrequencies);
-                }
-              }
-            } else {
-              //console.log("dictRef =" + dictRef);
+    let id = xml_molecules[i].getAttribute("id");
+    //console.log("id =" + id);
+    let description = xml_molecules[i].getAttribute("description");
+    let active = xml_molecules[i].getAttribute("active");
+    // Read atomArray
+    let xml_atomArray = xml_molecules[i].getElementsByTagName("atomArray")[0].getElementsByTagName("atom");
+    const atomArray = [];
+    for (let j = 0; j < xml_atomArray.length; j++) {
+      let xml_atom = xml_atomArray[j];
+      let atom = new Atom(xml_atom.getAttribute("id"), xml_atom.getAttribute("elementType"));
+      console.log(atom.toString());
+      atomArray.push(atom);
+    }
+    // Read bondArray
+    let xml_bondArray = xml_molecules[i].getElementsByTagName("bondArray")[0].getElementsByTagName("bond");
+    const bondArray = [];
+    for (let j = 0; j < xml_bondArray.length; j++) {
+      let xml_bond = xml_bondArray[j];
+      let atomRefs2 = xml_bond.getAttribute("atomRefs2").split(" ");
+      let bond = new Atom(atomRefs2[0], atomRefs2[1], xml_bond.getAttribute("order"));
+      console.log(bond.toString());
+      bondArray.push(bond);
+    }
+    // Read propertyList        
+    let xml_properties = xml_molecules[i].getElementsByTagName("propertyList")[0].getElementsByTagName("property");
+    const properties = [];
+    for (let j = 0; j < xml_properties.length; j++) {
+      let dictRef = xml_properties[j].getAttribute("dictRef");
+      if (dictRef != null) {
+        if (dictRef === "me:ZPE") {
+          //console.log("dictRef =" + dictRef);
+          let xml_scalar = xml_properties[j].getElementsByTagName("scalar")[0];
+          //console.log("xml_scalar =" + xml_scalar);
+          //console.log("scalar.length =" + scalar.length);
+          let cn = xml_scalar.childNodes;
+          //console.log("cn.length =" + cn.length);
+          for (let k = 0; k < cn.length; l++) {
+            //console.log("cn[" + l + "]");
+            if (cn[l] != null) {
+              //console.log("cn[" + l + "] =" + cn[l]);
+              //console.log("cn[" + l + "].length =" + cn[l].length);
+              //console.log("cn[" + l + "].nodeName =" + cn[l].nodeName);
+              //console.log("cn[" + l + "].nodeValue =" + cn[l].nodeValue);
+              energy = cn[l].nodeValue;
+              let energyFloat = parseFloat(energy);
+              moleculeEnergies.set(id, energyFloat);
+              minMoleculeEnergy = Math.min(minMoleculeEnergy, energyFloat);
+              maxMoleculeEnergy = Math.max(maxMoleculeEnergy, energyFloat);
+              //console.log("energy =" + energy);
             }
           }
+        } else if (dictRef === "me:rotConsts") {
+          //console.log("dictRef =" + dictRef);
+          let array = xml_properties[j].getElementsByTagName("array");
+          //console.log("array =" + array);
+          //console.log("array.length =" + array.length);
+          let cn = array[0].childNodes;
+          //console.log("cn.length =" + cn.length);
+          for (let l = 0; l < cn.length; l++) {
+            //console.log("cn[" + l + "]");
+            if (cn[l] != null) {
+              //console.log("cn[" + l + "] =" + cn[l]);
+              //console.log("cn[" + l + "].length =" + cn[l].length);
+              //console.log("cn[" + l + "].nodeName =" + cn[l].nodeName);
+              //console.log("cn[" + l + "].nodeValue =" + cn[l].nodeValue);
+              rotationalConstants = cn[l].nodeValue;
+              //console.log("rotationalConstants =" + rotationalConstants);
+            }
+          }
+        } else if (dictRef === "me:vibFreqs") {
+          //console.log("dictRef =" + dictRef);
+          let array = xml_properties[j].getElementsByTagName("array");
+          //console.log("array =" + array);
+          //console.log("array.length =" + array.length);
+          let cn = array[0].childNodes;
+          //console.log("cn.length =" + cn.length);
+          for (let l = 0; l < cn.length; l++) {
+            //console.log("cn[" + l + "]");
+            if (cn[l] != null) {
+              //console.log("cn[" + l + "] =" + cn[l]);
+              //console.log("cn[" + l + "].length =" + cn[l].length);
+              //console.log("cn[" + l + "].nodeName =" + cn[l].nodeName);
+              //console.log("cn[" + l + "].nodeValue =" + cn[l].nodeValue);
+              vibrationalFrequencies = cn[l].nodeValue;
+              //console.log("vibrationalFrequencies =" + vibrationalFrequencies);
+            }
+          }
+        } else {
+          //console.log("dictRef =" + dictRef);
         }
       }
+      let property = new Property(atomRefs2[0], atomRefs2[1], xml_bond.getAttribute("order"));
+      console.log(bond.toString());
+      bondArray.push(bond);
+
       table += getTR(getTD(id) + getTD(energy) + getTD(rotationalConstants) + getTD(vibrationalFrequencies));
     }
+    let molecule = new Molecule(id, description, atomArray, bondArray, properties, DOSCMethod);
   }
   //console.log("table =" + table);
   console.log("Molecule Energies:");
