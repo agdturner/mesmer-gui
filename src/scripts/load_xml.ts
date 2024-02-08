@@ -1,33 +1,71 @@
-import { Atom, Bond, PropertyScalar, PropertyArray, Molecule } from './classes.js';
-import { arrayToString } from './functions.js';
+import {
+    Atom,
+    Bond,
+    PropertyScalar,
+    PropertyArray,
+    Molecule,
+    Reactant,
+    Product,
+    TransitionState,
+    MCRCType,
+    PreExponential,
+    ActivationEnergy,
+    NInfinity,
+    MesmerILT,
+    MCRCMethod,
+    ZhuNakamuraCrossing,
+    SumOfStates,
+    SumOfStatesPoint,
+    DefinedSumOfStates,
+    Reaction,
+    ReactionWithTransitionState,
+    PTpair,
+    Conditions,
+    GrainSize,
+    ModelParameters,
+    DiagramEnergyOffset,
+    Control
+} from './classes.js';
+
+import {
+    arrayToString,
+    mapToString
+} from './functions.js';
+
 //import {JSDOM} from 'jsdom'; // Can't use JSDOM in a browser.
+
 /**
  * A map of molecules with Molecule.id as key and Molecules as values.
  */
-const molecules = new Map([]);
+const molecules = new Map<string, Molecule>([]);
+
 /**
  * For storing the maximum molecule energy in a reaction.
  */
 var maxMoleculeEnergy = -Infinity;
+
 /**
  * For storing the minimum molecule energy in a reaction.
  */
 var minMoleculeEnergy = Infinity;
+
 /**
  * A map of reactions with Reaction.id as keys and Reactions as values.
  */
-const reactions = new Map([]);
+const reactions = new Map<string, Reaction>([]);
+
 const xmlTextElement = document.getElementById("xml_text");
 if (xmlTextElement) {
     xmlTextElement.innerHTML = load('/src/data/examples/AcetylO2/Acetyl_O2_associationEx.xml');
 }
+
 /**
  * Load a specific XML File
  */
-function load(xmlFile) {
+function load(xmlFile: string): string {
     console.log("xmlFile=" + xmlFile);
-    let xml;
-    let text;
+    let xml: XMLDocument;
+    let text: string;
     // This works in the browser enviornment, but not in a node enviornment where somehting like JDOM is wanted.
     let request = new XMLHttpRequest();
     request.open("GET", xmlFile, true);
@@ -89,11 +127,12 @@ function load(xmlFile) {
     */
     return text;
 }
+
 /**
  * Parse the XML.
- * @param {XMLDocument} xml
+ * @param {XMLDocument} xml 
  */
-function parseXML(xml) {
+function parseXML(xml: XMLDocument) {
     /**
      * Log to console and display me.title.
      * This goes through the entire XML file and writes out log messages to the consol.
@@ -129,32 +168,33 @@ function parseXML(xml) {
     //var title=xmlDoc.getElementsByTagName('me:title').nodeValue;
     //console.log("Title=" + title);
     //document.getElementById("metitle").innerHTML=title;
+
     /**
      * Generate molecules table.
      */
-    let molecules = getMolecules(xml);
+    let molecules: Map<string, Molecule> = getMolecules(xml);
     // Prepare table headings.
     const names = ["Name", "Energy<br>kJ/mol", "Rotational constants<br>cm<sup>-1</sup>", "Vibrational frequencies<br>cm<sup>-1</sup>"];
     let table = getTH(names);
     molecules.forEach(function (molecule, id) {
         console.log("id=" + id);
         console.log("molecule=" + molecule);
-        let energyNumber = molecule.getEnergy();
-        let energy;
+        let energyNumber: number = molecule.getEnergy();
+        let energy: string;
         if (energyNumber == null) {
             energy = "";
-        }
-        else {
+        } else {
             energy = molecule.getEnergy().toString();
         }
-        let rotationConstants = arrayToString(molecule.getRotationConstants());
-        let vibrationFrequencies = arrayToString(molecule.getVibrationFrequencies());
+        let rotationConstants: string = arrayToString(molecule.getRotationConstants());
+        let vibrationFrequencies: string = arrayToString(molecule.getVibrationFrequencies());
         table += getTR(getTD(id) + getTD(energy) + getTD(rotationConstants) + getTD(vibrationFrequencies));
     });
     const moleculesElement = document.getElementById("molecules");
     if (moleculesElement !== null) {
         moleculesElement.innerHTML = table;
     }
+
     /**
      * Generate reactions table.
      */
@@ -164,6 +204,7 @@ function parseXML(xml) {
         reactionsElement.innerHTML=getTable(parseReactions(xml));
     }
     */
+
     /**
      * Generate reactions well diagram.
      */
@@ -174,17 +215,18 @@ function parseXML(xml) {
     }
     */
 }
+
 /**
  * Parse the XML.
- * @param {string} text
+ * @param {string} text 
  */
-function parse(text) {
+function parse(text: string) {
     /**
      * Log to console and display me.title.
      * This goes through the entire XML file and writes out log messages to the consol.
      */
     //const dom=new JSDOM(text);
-    let elements; //=xml.getElementsByTagName('*');
+    let elements;//=xml.getElementsByTagName('*');
     console.log("Number of elements=" + elements.length);
     for (let i = 0; i < elements.length; i++) {
         let nn = elements[i].nodeName;
@@ -215,6 +257,7 @@ function parse(text) {
     //var title=xmlDoc.getElementsByTagName('me:title').nodeValue;
     //console.log("Title=" + title);
     //document.getElementById("metitle").innerHTML=title;
+
     /**
      * Generate molecules table.
      */
@@ -222,6 +265,7 @@ function parse(text) {
     if (moleculesElement !== null) {
         //moleculesElement.innerHTML=getTable(parseMolecules(text));
     }
+
     /**
      * Generate reactions table.
      */
@@ -231,6 +275,7 @@ function parse(text) {
         reactionsElement.innerHTML=getTable(parseReactions(xml));
     }
     */
+
     /**
      * Generate reactions well diagram.
      */
@@ -241,6 +286,7 @@ function parse(text) {
     }
     */
 }
+
 /**
  * Generate reactions table.
  * Initialise the reactionsInformation Map.
@@ -253,7 +299,7 @@ function parseReactions(xml: XMLDocument) {
     // Report number of reactions with id attributes.
     console.log("Number of xml reaction elements with ids=" + count(xml_reactions, "id"));
     // Prepare table headings.
-    let names=["ID", "Reactants", "Products", "Transition State", "PreExponential", "Activation Energy",
+    let names=["ID", "Reactants", "Products", "Transition State", "PreExponential", "Activation Energy", 
     "TInfinity", "NInfinity"];
     var table=getTH(names);
     // Process each reaction.
@@ -432,12 +478,13 @@ function parseReactions(xml: XMLDocument) {
     return table;
 }
 */
+
 /**
  * Parses xml and returns a map of molecules.
  * @param {XMLDocument} xml The XML document.
  * @returns {Map<string, Molecule>} A map of molecules.
  */
-function getMolecules(xml) {
+function getMolecules(xml: XMLDocument) : Map<string, Molecule> {
     console.log("getMolecules");
     let xml_molecules = xml.getElementsByTagName('moleculeList')[0].getElementsByTagName('molecule');
     let xml_molecules_length = xml_molecules.length;
@@ -450,39 +497,39 @@ function getMolecules(xml) {
         let id = xml_molecules[i].getAttribute("id");
         //console.log("id=" + id);
         let description = xml_molecules[i].getAttribute("description");
-        let active_string = xml_molecules[i].getAttribute("active");
-        let active = false;
+        let active_string: string = xml_molecules[i].getAttribute("active");
+        let active: boolean = false;
         if (active_string != null) {
             active = true;
         }
         // Read atomArray
-        const atoms = new Map();
+        const atoms: Map<string, Atom> = new Map();
         let xml_atomArray = xml_molecules[i].getElementsByTagName("atomArray")[0];
         if (xml_atomArray != null) {
             let xml_atoms = xml_atomArray.getElementsByTagName("atom");
             for (let j = 0; j < xml_atoms.length; j++) {
                 let xml_atom = xml_atoms[j];
-                let id = xml_atom.getAttribute("id");
+                let id: string = xml_atom.getAttribute("id");
                 let atom = new Atom(id, xml_atom.getAttribute("elementType"));
                 //console.log(atom.toString());
                 atoms.set(id, atom);
             }
         }
         // Read bondArray
-        const bonds = new Map();
+        const bonds: Map<string, Bond> = new Map();
         let xml_bondArray = xml_molecules[i].getElementsByTagName("bondArray")[0];
         if (xml_bondArray != null) {
             let xml_bonds = xml_bondArray.getElementsByTagName("bond");
             for (let j = 0; j < xml_bonds.length; j++) {
                 let xml_bond = xml_bonds[j];
-                let atomRefs2 = xml_bond.getAttribute("atomRefs2").split(" ");
+                let atomRefs2: string[] = xml_bond.getAttribute("atomRefs2").split(" ");
                 let bond = new Bond(atoms.get(atomRefs2[0]), atoms.get(atomRefs2[1]), xml_bond.getAttribute("order"));
                 //console.log(bond.toString());
                 bonds.set(id, bond);
             }
         }
         // Read propertyList
-        const properties = new Map();
+        const properties: Map<string, PropertyScalar | PropertyArray> = new Map();
         let xml_propertyList = xml_molecules[i].getElementsByTagName("propertyList")[0];
         if (xml_propertyList != null) {
             let xml_properties = xml_propertyList.getElementsByTagName("property");
@@ -502,8 +549,7 @@ function getMolecules(xml) {
                             properties.set(dictRef, new PropertyScalar(energy, units));
                             console.log("energy=" + energy);
                         }
-                    }
-                    else if (dictRef === "me:rotConsts") {
+                    } else if (dictRef === "me:rotConsts") {
                         //console.log("dictRef=" + dictRef);
                         let xml_array = xml_properties[j].getElementsByTagName("array")[0];
                         if (xml_array != null) {
@@ -511,33 +557,31 @@ function getMolecules(xml) {
                             //console.log("units=" + units);
                             let rotationalConstants = xml_array.childNodes[0];
                             if (rotationalConstants != null) {
-                                let values = toNumberArray(rotationalConstants.nodeValue.split(" "));
+                                let values: number[] = toNumberArray(rotationalConstants.nodeValue.split(" "));
                                 properties.set(dictRef, new PropertyArray(values, units));
                                 console.log("rotationalConstants=" + rotationalConstants);
                             }
                         }
-                    }
-                    else if (dictRef === "me:vibFreqs") {
+                    } else if (dictRef === "me:vibFreqs") {
                         let xml_array = xml_properties[j].getElementsByTagName("array")[0];
                         if (xml_array != null) {
                             let units = xml_array.getAttribute("units");
                             //console.log("units=" + units);
                             let vibrationalFrequencies = xml_array.childNodes[0];
                             if (vibrationalFrequencies != null) {
-                                let values = toNumberArray(vibrationalFrequencies.nodeValue.split(" "));
+                                let values: number[] = toNumberArray(vibrationalFrequencies.nodeValue.split(" "));
                                 properties.set(dictRef, new PropertyArray(values, units));
                                 console.log("vibrationalFrequencies=" + vibrationalFrequencies);
                             }
                         }
-                    }
-                    else {
+                    } else {
                         //console.log("dictRef=" + dictRef);
                     }
                 }
             }
         }
         // Read DOSCMethod
-        let dOSCMethod = "";
+        let dOSCMethod: string = "";
         let xml_DOSCMethod = xml_molecules[i].getElementsByTagName("me:DOSCMethod")[0];
         if (xml_DOSCMethod != null) {
             dOSCMethod = xml_DOSCMethod.getAttribute("xsi:type");
@@ -548,17 +592,19 @@ function getMolecules(xml) {
     }
     return molecules;
 }
+
 /**
  * @param s The string to convert to a number array.
  * @returns A number array.
  */
-function toNumberArray(s) {
-    let r = [];
+function toNumberArray(s: string[]): number[] {
+    let r: number[] = [];
     for (let i = 0; i < s.length; i++) {
         r.push(parseFloat(s[i]));
     }
     return r;
 }
+
 /**
 * Count the number of elements with a specific attribute.
 * @param Element[] elements
@@ -574,54 +620,60 @@ function count(elements, attribute_name) {
     }
     return r;
 }
+
 /**
  * Create a table header row.
 * @param {string[]} headings The headings.
 * @returns {string} Table row with headings.
 */
-function getTH(headings) {
+function getTH(headings: string[]): string {
     var th = "";
     for (let i = 0; i < headings.length; i++) {
-        th += "<th>" + headings[i] + "</th>";
+        th += "<th>" + headings[i] + "</th>"
     }
     return getTR(th);
 }
+
 /**
  * Create a table cell.
 * @param {string} x A cell for a table row.
 * @returns {string} x wrapped in td tags.
 */
-function getTD(x) {
+function getTD(x: string): string {
     return "<td>" + x + "</td>";
 }
+
 /**
  * Create a table row.
 * @param {string} x A row for a table.
 * @returns {string} x wrapped in tr tags.
 */
-function getTR(x) {
+function getTR(x: string): string {
     return "<tr>" + x + "</tr>\n";
 }
+
 /**
  * Create a table.
 * @param {string} x Table rows for a table.
 * @returns {string} x wrapped in table tags.
 */
-function getTable(x) {
+function getTable(x: string): string {
     return "<table>" + x + "</table>";
 }
+
 /**
  * Convert XML to HTML.
  * @param {string} text The XML text.
  * @returns {string} The HTML text.
  */
-function XMLToHTML(text) {
+function XMLToHTML(text: string): string {
     return text.replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/\n/g, "<br>")
         .replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;")
         .replace(/  /g, "&nbsp;&nbsp;");
 }
+
 /*
 function createDiagram() {
     console.log("createDiagram");
@@ -742,11 +794,13 @@ function createDiagram() {
     return canvas
 }
 */
+
 function drawLevel(ctx, strokeStyle, strokewidth, x0, y0, x1, y1, th, reactantLabel) {
     writeText(ctx, y1, strokeStyle, x0, y1 + th);
     writeText(ctx, reactantLabel, strokeStyle, x0, y1 - th);
     drawLine(ctx, strokeStyle, strokewidth, x0, y0, x1, y1);
 }
+
 /**
  * Draw a line (segment) on the canvas.
  * @param {CanvasRenderingContext2D} ctx The context to use.
@@ -756,7 +810,8 @@ function drawLevel(ctx, strokeStyle, strokewidth, x0, y0, x1, y1, th, reactantLa
  * @param {Integer} x2 The end x-coordinate of the line.
  * @param {Integer} y2 The end y-coordinate of the line.
  */
-function drawLine(ctx, strokeStyle, strokewidth, x1, y1, x2, y2) {
+function drawLine(ctx: CanvasRenderingContext2D, strokeStyle: string, strokewidth: number,
+    x1: number, y1: number, x2: number, y2: number) {
     // Save the context (to restore after).
     ctx.save();
     ctx.strokeStyle = strokeStyle;
@@ -767,6 +822,7 @@ function drawLine(ctx, strokeStyle, strokewidth, x1, y1, x2, y2) {
     // Restore the context.
     ctx.restore();
 }
+
 /**
  * Writes text to the canvas. (It is probably better to write all the labels in one go.)
  * @param {CanvasRenderingContext2D} ctx The context to use.
@@ -775,7 +831,7 @@ function drawLine(ctx, strokeStyle, strokewidth, x1, y1, x2, y2) {
  * @param {number} x The horizontal position of the text.
  * @param {number} y The vertical position of the text.
  */
-function writeText(ctx, text, colour, x, y) {
+function writeText(ctx: CanvasRenderingContext2D, text: string, colour: string, x: number, y: number) {
     // Save the context (to restore after).
     ctx.save();
     // Translate to the point where text is to be added.
@@ -789,20 +845,22 @@ function writeText(ctx, text, colour, x, y) {
     // Restore the context.
     ctx.restore();
 }
+
 /**
  * @param {CanvasRenderingContext2D} ctx The context to use.
  * @param {string} text The text to get the height of.
  * @returns {number} The height of the text in pixels.
  */
-function getTextHeight(ctx, text) {
+function getTextHeight(ctx: CanvasRenderingContext2D, text: string): number {
     var fontMetric = ctx.measureText(text);
     return fontMetric.actualBoundingBoxAscent + fontMetric.actualBoundingBoxDescent;
 }
+
 /**
  * @param {CanvasRenderingContext2D} ctx The context to use.
  * @param {string} text The text to get the width of.
  * @returns {number} The width of the text in pixels.
  */
-function getTextWidth(ctx, text) {
+function getTextWidth(ctx: CanvasRenderingContext2D, text: string): number {
     return ctx.measureText(text).width;
 }

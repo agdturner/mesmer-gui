@@ -1,13 +1,17 @@
-import { arrayToString, mapToString } from './functions.js';
+import {
+    arrayToString,
+    mapToString
+} from './functions.js';
+
 /**
  * A class for representing an atom.
  * @param {string} id The id of the atom.
  * @param {string} elementType The element type of the atom.
  */
 export class Atom {
-    id;
-    elementType;
-    constructor(id, elementType) {
+    id: string;
+    elementType: string;
+    constructor(id: string, elementType: string) {
         this.id = id;
         this.elementType = elementType;
     }
@@ -17,6 +21,7 @@ export class Atom {
             `elementType(${this.elementType}))`;
     }
 }
+
 /**
  * A class for representing an atomic bond - a bond beteen two atoms.
  * @param {Atom} atomA One atom.
@@ -24,10 +29,10 @@ export class Atom {
  * @param {string} order The order of the bond.
  */
 export class Bond {
-    atomA;
-    atomB;
-    order;
-    constructor(atomA, atomB, order) {
+    atomA: Atom;
+    atomB: Atom;
+    order: string;
+    constructor(atomA: Atom, atomB: Atom, order: string) {
         this.atomA = atomA;
         this.atomB = atomB;
         this.order = order;
@@ -39,15 +44,16 @@ export class Bond {
             `order(${this.order}))`;
     }
 }
+
 /**
  * A class for representing a measure.
  * @param {number} value The value of the measure.
  * @param {string} units The units of the measure.
  */
 class Measure {
-    value;
-    units;
-    constructor(value, units) {
+    value: number;
+    units: string;
+    constructor(value: number, units: string) {
         this.value = value;
         this.units = units;
     }
@@ -57,28 +63,30 @@ class Measure {
             `units(${this.units}))`;
     }
 }
+
 /**
  * A class for representing a property scalar.
  * @param {number} value The value.
  * @param {string} units The units.
  */
 export class PropertyScalar extends Measure {
-    constructor(value, units) {
+    constructor(value: number, units: string) {
         super(value, units);
     }
     toString() {
         return `Scalar(${super.toString()})`;
     }
 }
+
 /**
  * A class for representing a property array.
  * @param {number[]} values The values.
  * @param {string} unit The unit.
  */
 export class PropertyArray {
-    values;
-    units;
-    constructor(values, units) {
+    values: number[];
+    units: string;
+    constructor(values: number[], units: string) {
         this.values = values;
         this.units = units;
     }
@@ -88,13 +96,14 @@ export class PropertyArray {
             `unit(${this.units}))`;
     }
     toPropertyScalarArray() {
-        let r = [];
+        let r: PropertyScalar[] = [];
         for (let i = 0; i < this.values.length; i++) {
             r.push(new PropertyScalar(this.values[i], this.units));
         }
         return r;
     }
 }
+
 /**
  * A class for representing a molecule.
  * @param {string} id The id of the molecule.
@@ -106,14 +115,18 @@ export class PropertyArray {
  * @param {string} dOSCMethod The principal external rotational states method for calculating density of states.
  */
 export class Molecule {
-    id;
-    description;
-    active;
-    atoms;
-    bonds;
-    properties;
-    dOSCMethod;
-    constructor(id, description, active, atoms, bonds, properties, dOSCMethod) {
+    id: string;
+    description: string;
+    active: boolean;
+    atoms: Map<string, Atom>;
+    bonds: Map<string, Bond>;
+    properties: Map<string, PropertyScalar | PropertyArray>;
+    dOSCMethod: string;
+    constructor(id: string, description: string, active: boolean,
+        atoms: Map<string, Atom>,
+        bonds: Map<string, Bond>,
+        properties: Map<string, PropertyScalar | PropertyArray>,
+        dOSCMethod: string) {
         this.id = id;
         this.description = description;
         this.active = active;
@@ -132,52 +145,51 @@ export class Molecule {
             `properties(${mapToString(this.properties)}), ` +
             `dOSCMethod(${this.dOSCMethod.toString()}))`;
     }
-    getEnergy() {
-        let energy;
+    getEnergy(): number {
+        let energy: number;
         let energyProperty = this.properties.get('me:ZPE');
         if (energyProperty != null) {
             if (energyProperty instanceof PropertyScalar) {
                 energy = energyProperty.value;
             }
         }
-        return energy;
+        return energy
     }
-    getRotationConstants() {
-        let rotationConstants;
+    getRotationConstants(): number[] {
+        let rotationConstants: number[];
         let rotationConstantsProperty = this.properties.get('me:rotConsts');
         if (rotationConstantsProperty != null) {
             if (rotationConstantsProperty instanceof PropertyScalar) {
                 rotationConstants = [rotationConstantsProperty.value];
-            }
-            else {
+            } else {
                 rotationConstants = rotationConstantsProperty.values;
             }
         }
         return rotationConstants;
     }
-    getVibrationFrequencies() {
-        let vibrationFrequencies;
+    getVibrationFrequencies(): number[] {
+        let vibrationFrequencies: number[];
         let vibrationFrequenciesProperty = this.properties.get('me:vibFreqs');
         if (vibrationFrequenciesProperty != null) {
             if (vibrationFrequenciesProperty instanceof PropertyScalar) {
                 vibrationFrequencies = [vibrationFrequenciesProperty.value];
-            }
-            else {
+            } else {
                 vibrationFrequencies = vibrationFrequenciesProperty.values;
             }
         }
         return vibrationFrequencies;
     }
 }
+
 /**
  * A class for representing a molecule and a role.
  * @param {Molecule} molecule The molecule.
  * @param {string} role The role of the molecule.
  */
 class MR {
-    molecule;
-    role;
-    constructor(molecule, role) {
+    molecule: Molecule;
+    role: string;
+    constructor(molecule: Molecule, role: string) {
         this.molecule = molecule;
         this.role = role;
     }
@@ -187,52 +199,56 @@ class MR {
             `role(${this.role}))`;
     }
 }
+
 /**
  * A class for representing a reactant in a reaction.
  * @param {Molecule} molecule The molecule.
  * @param {string} role The role of the molecule.
  */
 export class Reactant extends MR {
-    constructor(molecule, role) {
+    constructor(molecule: Molecule, role: string) {
         super(molecule, role);
     }
     toString() {
         return `Reactant(${super.toString})`;
     }
 }
+
 /**
  * A class for representing a product in a reaction.
  * @param {Molecule} molecule The molecule.
  * @param {string} role The role of the molecule.
  */
 export class Product extends MR {
-    constructor(molecule, role) {
+    constructor(molecule: Molecule, role: string) {
         super(molecule, role);
     }
     toString() {
         return `Product(${super.toString})`;
     }
 }
+
 /**
  * A class for representing a transition state.
  * @param {Molecule} molecule The molecule.
  * @param {string} role The role of the molecule.
  */
 export class TransitionState extends MR {
-    constructor(molecule, role) {
+    constructor(molecule: Molecule, role: string) {
         super(molecule, role);
     }
     toString() {
         return `TransitionState(${super.toString})`;
     }
 }
+
 /**
  * A class for representing MCRCTypes - microcanonical rate constant types.
  * @param {string} type The type of the microcanonical rate constant.
  */
 export class MCRCType {
-    type;
-    constructor(type) {
+    type: string;
+    constructor(type: string) {
         this.type = type;
     }
     toString() {
@@ -240,6 +256,7 @@ export class MCRCType {
             `type(${this.type}))`;
     }
 }
+
 /**
  * A class for representing a Bounded Stepped Measure.
  * @param {number} value The value of the factor.
@@ -249,10 +266,10 @@ export class MCRCType {
  * @param {number} stepsize The stepsize.
  */
 class BSMeaure extends Measure {
-    lower;
-    upper;
-    stepsize;
-    constructor(value, units, lower, upper, stepsize) {
+    lower: number;
+    upper: number;
+    stepsize: number;
+    constructor(value: number, units: string, lower: number, upper: number, stepsize: number) {
         super(value, units);
         this.lower = lower;
         this.upper = upper;
@@ -265,8 +282,9 @@ class BSMeaure extends Measure {
             `stepsize(${this.stepsize.toString()}))`;
     }
 }
+
 /**
- * A class for representing the Arrhenius pre-exponential factor.
+ * A class for representing the Arrhenius pre-exponential factor. 
  * @param {number} value The value of the factor.
  * @param {string} units The units.
  * @param {number} lower The lower bound.
@@ -274,28 +292,30 @@ class BSMeaure extends Measure {
  * @param {number} stepsize The stepsize.
  */
 export class PreExponential extends BSMeaure {
-    constructor(value, units, lower, upper, stepsize) {
+    constructor(value: number, units: string, lower: number, upper: number, stepsize: number) {
         super(value, units, lower, upper, stepsize);
     }
     toString() {
         return `PreExponential(${super.toString})`;
     }
 }
+
 /**
  * A class for representing the Arrhenius activation energy factor.
  * @param {number} value The value of the factor.
  * @param {string} units The units.
  */
 export class ActivationEnergy extends Measure {
-    constructor(value, units) {
+    constructor(value: number, units: string) {
         super(value, units);
     }
     toString() {
         return `ActivationEnergy(${super.toString()})`;
     }
 }
+
 /**
- * A class for representing the modified Arrhenius parameter factor.
+ * A class for representing the modified Arrhenius parameter factor. 
  * @param {number} value The value of the factor.
  * @param {string} units The units.
  * @param {number} lower The lower bound.
@@ -303,13 +323,14 @@ export class ActivationEnergy extends Measure {
  * @param {number} stepsize The stepsize.
  */
 export class NInfinity extends BSMeaure {
-    constructor(value, units, lower, upper, stepsize) {
+    constructor(value: number, units: string, lower: number, upper: number, stepsize: number) {
         super(value, units, lower, upper, stepsize);
     }
     toString() {
         return `NInfinity(${super.toString})`;
     }
 }
+
 /**
  * A class for representing the inverse Laplace transform (ILT) type of microcanonical rate constant.
  * @param {string} type The type of the microcanonical rate constant.
@@ -319,11 +340,12 @@ export class NInfinity extends BSMeaure {
  * @param {NInfinity} nInfinity The nInfinity.
  */
 export class MesmerILT extends MCRCType {
-    preExponential;
-    activationEnergy;
-    TInfinity;
-    nInfinity;
-    constructor(type, preExponential, activationEnergy, TInfinity, nInfinity) {
+    preExponential: PreExponential;
+    activationEnergy: ActivationEnergy;
+    TInfinity: number;
+    nInfinity: NInfinity;
+    constructor(type: string, preExponential: PreExponential, activationEnergy: ActivationEnergy, TInfinity: number,
+        nInfinity: NInfinity) {
         super(type);
         this.preExponential = preExponential;
         this.activationEnergy = activationEnergy;
@@ -338,6 +360,7 @@ export class MesmerILT extends MCRCType {
             `nInfinity(${this.nInfinity.toString()}))`;
     }
 }
+
 /**
  * A class for representing the MCRCMethod specifications.
  * Extended classes indicate how microcanonical rate constant is to be treated.
@@ -345,9 +368,9 @@ export class MesmerILT extends MCRCType {
  * @param {string} type The type of the microcanonical rate constant.
  */
 export class MCRCMethod {
-    name;
-    type;
-    constructor(name, type) {
+    name: string;
+    type: string;
+    constructor(name: string, type: string) {
         this.name = name;
         this.type = type;
     }
@@ -357,6 +380,7 @@ export class MCRCMethod {
             `type(${this.type}))`;
     }
 }
+
 /**
  * A class for representing the Zhu-Nakamura crossing MCRCMethod.
  * @param {string} name The name of the method.
@@ -369,13 +393,19 @@ export class MCRCMethod {
  * @param {number} exponentialProductDiabat_DE The exponential product diabatic DE.
  */
 export class ZhuNakamuraCrossing extends MCRCMethod {
-    harmonicReactantDiabat_FC;
-    harmonicReactantDiabat_XO;
-    harmonicProductDiabat_DE;
-    exponentialProductDiabat_A;
-    exponentialProductDiabat_B;
-    exponentialProductDiabat_DE;
-    constructor(name, type, harmonicReactantDiabat_FC, harmonicReactantDiabat_XO, harmonicProductDiabat_DE, exponentialProductDiabat_A, exponentialProductDiabat_B, exponentialProductDiabat_DE) {
+    harmonicReactantDiabat_FC: number;
+    harmonicReactantDiabat_XO: number;
+    harmonicProductDiabat_DE: number;
+    exponentialProductDiabat_A: number;
+    exponentialProductDiabat_B: number;
+    exponentialProductDiabat_DE: number;
+    constructor(name: string, type: string,
+        harmonicReactantDiabat_FC: number,
+        harmonicReactantDiabat_XO: number,
+        harmonicProductDiabat_DE: number,
+        exponentialProductDiabat_A: number,
+        exponentialProductDiabat_B: number,
+        exponentialProductDiabat_DE: number) {
         super(name, type);
         this.harmonicReactantDiabat_FC = harmonicReactantDiabat_FC;
         this.harmonicReactantDiabat_XO = harmonicReactantDiabat_XO;
@@ -395,6 +425,7 @@ export class ZhuNakamuraCrossing extends MCRCMethod {
             `exponentialProductDiabat_DE(${this.exponentialProductDiabat_DE.toString()}))`;
     }
 }
+
 /**
  * A class for representing the sum of states.
  * @param {string} units The units of energy.
@@ -403,11 +434,11 @@ export class ZhuNakamuraCrossing extends MCRCMethod {
  * @param {SumOfStatesPoint[]} sumOfStatesPoints The sum of states points.
  */
 export class SumOfStates {
-    units;
-    angularMomentum;
-    noLogSpline;
-    sumOfStatesPoints;
-    constructor(units, angularMomentum, noLogSpline, sumOfStatesPoints) {
+    units: string;
+    angularMomentum: boolean;
+    noLogSpline: boolean;
+    sumOfStatesPoints: SumOfStatesPoint[];
+    constructor(units: string, angularMomentum: boolean, noLogSpline: boolean, sumOfStatesPoints: SumOfStatesPoint[]) {
         this.units = units;
         this.angularMomentum = angularMomentum;
         this.noLogSpline = noLogSpline;
@@ -421,6 +452,7 @@ export class SumOfStates {
             `sumOfStatesPoints(${arrayToString(this.sumOfStatesPoints)}))`;
     }
 }
+
 /**
  * A class for representing a sum of states point.
  * @param {number} value The value of the point.
@@ -428,10 +460,10 @@ export class SumOfStates {
  * @param {number} angMomMag The angular momentum magnitude of the point.
  */
 export class SumOfStatesPoint {
-    value;
-    energy;
-    angMomMag;
-    constructor(value, energy, angMomMag) {
+    value: number;
+    energy: number;
+    angMomMag: number;
+    constructor(value: number, energy: number, angMomMag: number) {
         this.value = value;
         this.energy = energy;
         this.angMomMag = angMomMag;
@@ -443,15 +475,16 @@ export class SumOfStatesPoint {
             `angMomMag(${this.angMomMag.toString()}))`;
     }
 }
+
 /**
  * A class for representing the DefinedSumOfStates MCRCMethod.
- * @param {string} name The name of the method.
+ * @param {string} name The name of the method. 
  * @param {string} type The type of the method.
  * @param {SumOfStates} sumOfStates The sum of states.
  */
 export class DefinedSumOfStates extends MCRCMethod {
-    sumOfStates;
-    constructor(name, type, sumOfStates) {
+    sumOfStates: SumOfStates;
+    constructor(name: string, type: string, sumOfStates: SumOfStates) {
         super(name, type);
         this.sumOfStates = sumOfStates;
     }
@@ -460,6 +493,7 @@ export class DefinedSumOfStates extends MCRCMethod {
             `sumOfStates(${this.sumOfStates.toString()}))`;
     }
 }
+
 /**
  * A class for representing a reaction.
  * @param {string} id The id of the reaction.
@@ -468,11 +502,11 @@ export class DefinedSumOfStates extends MCRCMethod {
  * @param {Product[]} products The products of the reaction.
  */
 export class Reaction {
-    id;
-    active;
-    reactants;
-    products;
-    constructor(id, active, reactants, products) {
+    id: string;
+    active: boolean;
+    reactants: Map<string, Reactant>;
+    products: Map<string, Product>;
+    constructor(id: string, active: boolean, reactants: Map<string, Reactant>, products: Map<string, Product>) {
         this.id = id;
         this.active = active;
         this.reactants = reactants;
@@ -486,6 +520,7 @@ export class Reaction {
             `products(${mapToString(this.products)}))`;
     }
 }
+
 /**
  * A class for representing a reaction.
  * @param {string} id The id of the reaction.
@@ -496,9 +531,10 @@ export class Reaction {
  * @param {TransitionState} transitionState The transition state.
  */
 export class ReactionWithTransitionState extends Reaction {
-    mCRCMethod;
-    transitionState;
-    constructor(id, active, reactants, products, mCRCMethod, transitionState) {
+    mCRCMethod: MCRCMethod;
+    transitionState: TransitionState;
+    constructor(id: string, active: boolean, reactants: Map<string, Reactant>, products: Map<string, Product>,
+        mCRCMethod: MCRCMethod, transitionState: TransitionState) {
         super(id, active, reactants, products);
         this.mCRCMethod = mCRCMethod;
         this.transitionState = transitionState;
@@ -509,6 +545,7 @@ export class ReactionWithTransitionState extends Reaction {
             `transitionState(${this.transitionState.toString()}))`;
     }
 }
+
 /**
  * A class for representing a Pressure and Temperature pair.
  * @param {string} units The units of the pair.
@@ -516,10 +553,10 @@ export class ReactionWithTransitionState extends Reaction {
  * @param {number} T The temperature.
  */
 export class PTpair {
-    units;
-    P;
-    T;
-    constructor(units, P, T) {
+    units: string;
+    P: number;
+    T: number;
+    constructor(units: string, P: number, T: number) {
         this.units = units;
         this.P = P;
         this.T = T;
@@ -531,15 +568,16 @@ export class PTpair {
             `T(${this.T.toString()}))`;
     }
 }
+
 /**
  * A class for representing the experiment conditions.
  * @param {string} bathGas The bath gas.
  * @param {PTpair[]} pTs The Pressure and Temperature pairs.
  */
 export class Conditions {
-    bathGas;
-    pTs;
-    constructor(bathGas, pTs) {
+    bathGas: string;
+    pTs: PTpair[];
+    constructor(bathGas: string, pTs: PTpair[]) {
         this.bathGas = bathGas;
         this.pTs = pTs;
     }
@@ -549,28 +587,30 @@ export class Conditions {
             `pTs(${this.pTs.toString()}))`;
     }
 }
+
 /**
  * A class for measures of grain size.
  * @param {number} value The value.
  * @param {string} units The units.
  */
 export class GrainSize extends Measure {
-    constructor(value, units) {
+    constructor(value: number, units: string) {
         super(value, units);
     }
     toString() {
         return `GrainSize(${super.toString()})`;
     }
 }
+
 /**
  * A class for model parameters.
  * @param {GrainSize} grainSize The grain size.
  * @param {number} energyAboveTheTopHill The energy above the top hill.
  */
 export class ModelParameters {
-    grainSize;
-    energyAboveTheTopHill;
-    constructor(grainSize, energyAboveTheTopHill) {
+    grainSize: GrainSize;
+    energyAboveTheTopHill: number;
+    constructor(grainSize: GrainSize, energyAboveTheTopHill: number) {
         this.grainSize = grainSize;
         this.energyAboveTheTopHill = energyAboveTheTopHill;
     }
@@ -580,15 +620,16 @@ export class ModelParameters {
             `energyAboveTheTopHill(${this.energyAboveTheTopHill.toString()}))`;
     }
 }
+
 /**
  * A class for the diagram energy offset.
  * @param {string} ref The reference.
  * @param {number} value The value.
  */
 export class DiagramEnergyOffset {
-    ref;
-    value;
-    constructor(ref, value) {
+    ref: string;
+    value: number;
+    constructor(ref: string, value: number) {
         this.ref = ref;
         this.value = value;
     }
@@ -598,6 +639,7 @@ export class DiagramEnergyOffset {
             `value(${this.value.toString()}))`;
     }
 }
+
 /**
  * A class for the control.
  * @param {boolean} testDOS The test density of states flag.
@@ -616,21 +658,24 @@ export class DiagramEnergyOffset {
  * @param {DiagramEnergyOffset} diagramEnergyOffset The diagram energy offset.
  */
 export class Control {
-    testDOS;
-    printSpeciesProfile;
-    testMicroRates;
-    testRateConstant;
-    printGrainDOS;
-    printCellDOS;
-    printReactionOperatorColumnSums;
-    printTunnellingCoefficients;
-    printGrainkfE;
-    printGrainBoltzmann;
-    printGrainkbE;
-    eigenvalues;
-    hideInactive;
-    diagramEnergyOffset;
-    constructor(testDOS, printSpeciesProfile, testMicroRates, testRateConstant, printGrainDOS, printCellDOS, printReactionOperatorColumnSums, printTunnellingCoefficients, printGrainkfE, printGrainBoltzmann, printGrainkbE, eigenvalues, hideInactive, diagramEnergyOffset) {
+    testDOS: boolean;
+    printSpeciesProfile: boolean;
+    testMicroRates: boolean;
+    testRateConstant: boolean;
+    printGrainDOS: boolean;
+    printCellDOS: boolean;
+    printReactionOperatorColumnSums: boolean;
+    printTunnellingCoefficients: boolean;
+    printGrainkfE: boolean;
+    printGrainBoltzmann: boolean;
+    printGrainkbE: boolean;
+    eigenvalues: number;
+    hideInactive: boolean;
+    diagramEnergyOffset: DiagramEnergyOffset;
+    constructor(testDOS: boolean, printSpeciesProfile: boolean, testMicroRates: boolean, testRateConstant:
+        boolean, printGrainDOS: boolean, printCellDOS: boolean, printReactionOperatorColumnSums:
+            boolean, printTunnellingCoefficients: boolean, printGrainkfE: boolean, printGrainBoltzmann: boolean,
+        printGrainkbE: boolean, eigenvalues: number, hideInactive: boolean, diagramEnergyOffset: DiagramEnergyOffset) {
         this.testDOS = testDOS;
         this.printSpeciesProfile = printSpeciesProfile;
         this.testMicroRates = testMicroRates;

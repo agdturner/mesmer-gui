@@ -1,0 +1,13 @@
+// Purpose: Configuration for TypeScript compiler.
+// Documentation: https://www.typescriptlang.org/tsconfig
+// Note: This file is used to configure the TypeScript compiler for the test environment.
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "esnext",
+    "moduleResolution":"node",
+    "lib": ["es2022", "dom"]},
+  "files": [
+    "module.ts"
+  ]
+}
