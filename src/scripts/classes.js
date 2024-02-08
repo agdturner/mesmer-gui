@@ -183,7 +183,7 @@ class MR {
     }
     toString() {
         return `MR(` +
-            `molecule(${this.molecule.toString()}), ` +
+            `molecule(${this.molecule ? this.molecule.toString() : 'null'}), ` + // Check if molecule is null
             `role(${this.role}))`;
     }
 }
@@ -197,7 +197,7 @@ export class Reactant extends MR {
         super(molecule, role);
     }
     toString() {
-        return `Reactant(${super.toString})`;
+        return `Reactant(${super.toString()})`;
     }
 }
 /**
@@ -210,7 +210,7 @@ export class Product extends MR {
         super(molecule, role);
     }
     toString() {
-        return `Product(${super.toString})`;
+        return `Product(${super.toString()})`;
     }
 }
 /**
@@ -223,7 +223,7 @@ export class TransitionState extends MR {
         super(molecule, role);
     }
     toString() {
-        return `TransitionState(${super.toString})`;
+        return `TransitionState(${super.toString()})`;
     }
 }
 /**
@@ -244,25 +244,25 @@ export class MCRCType {
  * A class for representing a Bounded Stepped Measure.
  * @param {number} value The value of the factor.
  * @param {string} units The units.
- * @param {number} lower The lower bound.
- * @param {number} upper The upper bound.
- * @param {number} stepsize The stepsize.
+ * @param {number} lower The lower bound (optional).
+ * @param {number} upper The upper bound (optional).
+ * @param {number} stepsize The stepsize (optional).
  */
-class BSMeaure extends Measure {
+class BSMeasure extends Measure {
     lower;
     upper;
     stepsize;
     constructor(value, units, lower, upper, stepsize) {
         super(value, units);
-        this.lower = lower;
-        this.upper = upper;
-        this.stepsize = stepsize;
+        this.lower = lower ?? null; // Use null as the default value
+        this.upper = upper ?? null; // Use null as the default value
+        this.stepsize = stepsize ?? null; // Use null as the default value
     }
     toString() {
-        return `BSMeaure(${super.toString}, ` +
-            `lower(${this.lower.toString()}), ` +
-            `upper(${this.upper.toString()}), ` +
-            `stepsize(${this.stepsize.toString()}))`;
+        return `BSMeasure(${super.toString()}, ` +
+            `lower(${this.lower == null ? 'null' : this.lower.toString()}), ` + // Check if lower is null
+            `upper(${this.upper == null ? 'null' : this.upper.toString()}), ` + // Check if upper is null
+            `stepsize(${this.stepsize == null ? 'null' : this.stepsize.toString()}))`; // Check if stepsize is null
     }
 }
 /**
@@ -273,12 +273,12 @@ class BSMeaure extends Measure {
  * @param {number} upper The upper bound.
  * @param {number} stepsize The stepsize.
  */
-export class PreExponential extends BSMeaure {
+export class PreExponential extends BSMeasure {
     constructor(value, units, lower, upper, stepsize) {
         super(value, units, lower, upper, stepsize);
     }
     toString() {
-        return `PreExponential(${super.toString})`;
+        return `PreExponential(${super.toString()})`;
     }
 }
 /**
@@ -302,40 +302,12 @@ export class ActivationEnergy extends Measure {
  * @param {number} upper The upper bound.
  * @param {number} stepsize The stepsize.
  */
-export class NInfinity extends BSMeaure {
+export class NInfinity extends BSMeasure {
     constructor(value, units, lower, upper, stepsize) {
         super(value, units, lower, upper, stepsize);
     }
     toString() {
-        return `NInfinity(${super.toString})`;
-    }
-}
-/**
- * A class for representing the inverse Laplace transform (ILT) type of microcanonical rate constant.
- * @param {string} type The type of the microcanonical rate constant.
- * @param {PreExponential} preExponential The pre-exponential factor.
- * @param {ActivationEnergy} activationEnergy The activation energy.
- * @param {number} TInfinity The TInfinity.
- * @param {NInfinity} nInfinity The nInfinity.
- */
-export class MesmerILT extends MCRCType {
-    preExponential;
-    activationEnergy;
-    TInfinity;
-    nInfinity;
-    constructor(type, preExponential, activationEnergy, TInfinity, nInfinity) {
-        super(type);
-        this.preExponential = preExponential;
-        this.activationEnergy = activationEnergy;
-        this.TInfinity = TInfinity;
-        this.nInfinity = nInfinity;
-    }
-    toString() {
-        return `MesmerILT(${super.toString()}, ` +
-            `preExponential(${this.preExponential.toString()}), ` +
-            `activationEnergy(${this.activationEnergy.toString()}), ` +
-            `TInfinity(${this.TInfinity.toString()}), ` +
-            `nInfinity(${this.nInfinity.toString()}))`;
+        return `NInfinity(${super.toString()})`;
     }
 }
 /**
@@ -352,9 +324,36 @@ export class MCRCMethod {
         this.type = type;
     }
     toString() {
-        return `MCRCMethod(` +
-            `name(${this.name}), ` +
-            `type(${this.type}))`;
+        return `MCRCMethod(name(${this.name}), type(${this.type}))`;
+    }
+}
+/**
+ * A class for representing the inverse Laplace transform (ILT) type of microcanonical rate constant.
+ * @param {string} name The name of the method.
+ * @param {string} type The type of the microcanonical rate constant.
+ * @param {PreExponential} preExponential The pre-exponential factor.
+ * @param {ActivationEnergy} activationEnergy The activation energy.
+ * @param {number} tInfinity The TInfinity.
+ * @param {NInfinity} nInfinity The nInfinity.
+ */
+export class MesmerILT extends MCRCMethod {
+    preExponential;
+    activationEnergy;
+    tInfinity;
+    nInfinity;
+    constructor(name, type, preExponential, activationEnergy, tInfinity, nInfinity) {
+        super(name, type);
+        this.preExponential = preExponential;
+        this.activationEnergy = activationEnergy;
+        this.tInfinity = tInfinity;
+        this.nInfinity = nInfinity;
+    }
+    toString() {
+        return `MesmerILT(${super.toString()}, ` +
+            `preExponential(${this.preExponential.toString()}), ` +
+            `activationEnergy(${this.activationEnergy.toString()}), ` +
+            `TInfinity(${this.tInfinity.toString()}), ` +
+            `nInfinity(${this.nInfinity.toString()}))`;
     }
 }
 /**
@@ -385,7 +384,7 @@ export class ZhuNakamuraCrossing extends MCRCMethod {
         this.exponentialProductDiabat_DE = exponentialProductDiabat_DE;
     }
     toString() {
-        return `ZhuNakamuraCrossing(${super.toString}, ` +
+        return `ZhuNakamuraCrossing(${super.toString()}, ` +
             `name(${this.name}), ` +
             `harmonicReactantDiabat_FC(${this.harmonicReactantDiabat_FC.toString()}), ` +
             `harmonicReactantDiabat_XO(${this.harmonicReactantDiabat_XO.toString()}), ` +
@@ -456,7 +455,7 @@ export class DefinedSumOfStates extends MCRCMethod {
         this.sumOfStates = sumOfStates;
     }
     toString() {
-        return `DefinedSumOfStates(${super.toString}, ` +
+        return `DefinedSumOfStates(${super.toString()}, ` +
             `sumOfStates(${this.sumOfStates.toString()}))`;
     }
 }
@@ -464,26 +463,43 @@ export class DefinedSumOfStates extends MCRCMethod {
  * A class for representing a reaction.
  * @param {string} id The id of the reaction.
  * @param {boolean} active Indicates if the reaction is active.
- * @param {Reactant[]} reactants The reactants in the reaction.
- * @param {Product[]} products The products of the reaction.
+ * @param {Map<string, Reactant>} reactants The reactants in the reaction.
+ * @param {Map<string, Product>} products The products of the reaction.
+ * @param {MCRCMethod} mCRCMethod The MCRCMethod.
  */
 export class Reaction {
     id;
     active;
     reactants;
     products;
-    constructor(id, active, reactants, products) {
+    mCRCMethod; // Make mCRCMethod optional.
+    constructor(id, active, reactants, products, mCRCMethod) {
         this.id = id;
         this.active = active;
         this.reactants = reactants;
         this.products = products;
+        this.mCRCMethod = mCRCMethod;
     }
     toString() {
         return `Reaction(` +
             `id(${this.id}), ` +
             `active(${this.active.toString()}), ` +
             `reactants(${mapToString(this.reactants)}), ` +
-            `products(${mapToString(this.products)}))`;
+            `products(${mapToString(this.products)}), ` +
+            `mCRCMethod(${this.mCRCMethod ? this.mCRCMethod.toString() : 'null'}))`;
+    }
+}
+/**
+ * A class for representing a tunneling.
+ * @param {string} name The name of the tunneling.
+ */
+export class Tunneling {
+    name;
+    constructor(name) {
+        this.name = name;
+    }
+    toString() {
+        return `tunneling(name(${this.name}))`;
     }
 }
 /**
@@ -494,18 +510,20 @@ export class Reaction {
  * @param {Map<string, Product>} products The products of the reaction.
  * @param {MCRCMethod} mCRCMethod The MCRCMethod.
  * @param {TransitionState} transitionState The transition state.
+ * @param {Tunneling} tunneling The tunneling.
  */
 export class ReactionWithTransitionState extends Reaction {
-    mCRCMethod;
     transitionState;
-    constructor(id, active, reactants, products, mCRCMethod, transitionState) {
-        super(id, active, reactants, products);
+    tunneling; // Make tunneling optional.
+    constructor(id, active, reactants, products, mCRCMethod, transitionState, tunneling) {
+        super(id, active, reactants, products, mCRCMethod);
         this.mCRCMethod = mCRCMethod;
+        this.tunneling = tunneling;
         this.transitionState = transitionState;
     }
     toString() {
-        return `ReactionWithTransitionState(${super.toString}, ` +
-            `mCRCMethod(${this.mCRCMethod.toString()}), ` +
+        return `ReactionWithTransitionState(${super.toString()}, ` +
+            `tunneling(${this.tunneling ? this.tunneling.toString() : 'null'}), ` + // Check if tunneling is null
             `transitionState(${this.transitionState.toString()}))`;
     }
 }
