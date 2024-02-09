@@ -594,10 +594,126 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
     let y1: number;
     let tw: number;
     let spacing: number = 10;
-    // Go through reactionInformation and draw lines.
+    let step: number = 50;
+    let i: number = 1;
+    // Go through reactions and figure out the steps.
     reactions.forEach(function (reaction, id) {
-        console.log("id=" + id);
-        console.log("reaction=" + reaction);
+        let transitionState: TransitionState;
+        if (reaction instanceof ReactionWithTransitionState) {
+            transitionState = reaction.transitionState;
+            //console.log("transitionState=" + transitionState);
+        }
+        //console.log("reactant=" + reactant);
+        let reactantsLabel: string = reaction.getReactantsLabel();
+        let productsLabel: string = reaction.getProductsLabel();
+        if (y0 == null) {
+            y0 = reaction.getReactantsEnergy();
+            // Get text width.
+            tw = Math.max(getTextWidth(ctx, y0.toString()), getTextWidth(ctx, reactantsLabel)) + spacing;
+            //console.log("tw=" + tw);
+            x1 = x0 + tw;
+            y1 = y0;
+            // Draw horizontal line and add label.
+            //console.log("0 x0=" + x0 + " y0=" + y0 + " x1=" + x1 + " y1=" + y1);
+            drawLevel(ctx, green, 4, x0, y0, x1, y1, th, reactantsLabel);
+            reactantxy.set(reactantsLabel, [x1, y1]);
+            x0 = x1;
+            let i: number = 0;
+            // Process transition state.
+            if (transitionState != null) {
+                i++;
+                x0 = x1;
+                y0 = y1;
+                x1 = x0 + tw;
+                y1 = transitionState.molecule.getEnergy();
+                // Draw connector line.
+                drawLine(ctx, black, 2, x0, y0, x1, y1);
+                // Get text width.
+                let tsLabel: string = transitionState.getName();
+                tw = Math.max(getTextWidth(ctx, y1.toString()), getTextWidth(ctx, tsLabel)) + spacing;
+                x0 = x1;
+                x1 = x0 + tw;
+                y0 = y1;
+                // Draw horizontal line and add label.
+                //console.log("1 x0=" + x0 + " y0=" + y0 + " x1=" + x1 + " y1=" + y1);
+                drawLevel(ctx, green, 4, x0, y0, x1, y1, th, tsLabel);
+                x0 = x1;
+            }
+            i++;
+            if (productxy.has(productsLabel)) {
+                let xy: number[] = productxy.get(productsLabel);
+                x1 = xy[0];
+                y1 = xy[1];
+            } else {
+                x1 = x0 + (tw * i);
+                y1 = reaction.getProductsEnergy();
+            }
+            // Draw connector line.
+            drawLine(ctx, black, 2, x0, y0, x1, y1);
+            tw = Math.max(getTextWidth(ctx, y1.toString()), getTextWidth(ctx, productsLabel)) + spacing;
+            x0 = x1;
+            x1 = x0 + tw;
+            y0 = y1;
+            // Draw horizontal line and add label.
+            //console.log("2 x0=" + x0 + " y0=" + y0 + " x1=" + x1 + " y1=" + y1);
+            drawLevel(ctx, green, 4, x0, y0, x1, y1, th, productsLabel);
+            productxy.set(productsLabel, [x0, y0]);
+            x0 = x1;
+        } else {
+            if (reactantxy.has(reactantsLabel)) {
+                let xy: number[] = reactantxy.get(reactantsLabel);
+                x0 = xy[0];
+                y0 = xy[1];
+            } else {
+                reactantxy.set(reactantsLabel, [x0, y0]);
+            }
+            let i: number = 0;
+            // Process transition state.
+            if (transitionState != null) {
+                i++;
+                x1 = x0 + tw;
+                y1 = transitionState.molecule.getEnergy();
+                // Draw connector line.
+                drawLine(ctx, black, 2, x0, y0, x1, y1);
+                // Get text width.
+                let tsLabel: string = transitionState.getName();
+                tw = Math.max(getTextWidth(ctx, y1.toString()), getTextWidth(ctx, tsLabel)) + spacing;
+                x0 = x1;
+                x1 = x0 + tw;
+                y0 = y1;
+                // Draw horizontal line and add label.
+                console.log("3 x0=" + x0 + " y0=" + y0 + " x1=" + x1 + " y1=" + y1);
+                drawLevel(ctx, green, 4, x0, y0, x1, y1, th, tsLabel);
+                x0 = x1;
+            }
+            i++;
+            // Draw line to product.
+            if (productxy.has(productsLabel)) {
+                let xy: number[] = productxy.get(productsLabel);
+                x1 = xy[0];
+                y1 = xy[1];
+            } else {
+                x1 = x0 + (tw * i);
+                y1 = reaction.getProductsEnergy();
+            }
+            // Draw connector line.
+            drawLine(ctx, black, 2, x0, y0, x1, y1);
+            tw = Math.max(getTextWidth(ctx, y1.toString()), getTextWidth(ctx, productsLabel)) + spacing;
+            x0 = x1;
+            x1 = x0 + tw;
+            y0 = y1;
+            // Draw horizontal line and add label.
+            console.log("4 x0=" + x0 + " y0=" + y0 + " x1=" + x1 + " y1=" + y1);
+            drawLevel(ctx, green, 4, x0, y0, x1, y1, th, productsLabel);
+            productxy.set(productsLabel, [x0, y0]);
+            x0 = x1;
+        }
+    });
+    
+    // Go through reactions and draw lines.
+    reactions.forEach(function (reaction, id) {
+        //console.log("id=" + id);
+        //console.log("reaction=" + reaction);
         // Get TransitionState if there is one.
         let transitionState: TransitionState;
         if (reaction instanceof ReactionWithTransitionState) {
