@@ -497,8 +497,14 @@ export class Reaction {
     getReactantsLabel() {
         return Array.from(this.reactants.values()).map(reactant => reactant.molecule.id).join(' + ');
     }
+    getReactantsEnergy() {
+        return Array.from(this.reactants.values()).map(reactant => reactant.molecule.getEnergy()).reduce((a, b) => a + b, 0);
+    }
     getProductsLabel() {
         return Array.from(this.products.values()).map(product => product.molecule.id).join(' + ');
+    }
+    getProductsEnergy() {
+        return Array.from(this.products.values()).map(product => product.molecule.getEnergy()).reduce((a, b) => a + b, 0);
     }
     getLabel() {
         let label = this.getReactantsLabel() + ' -> ' + this.getProductsLabel();
