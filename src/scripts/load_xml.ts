@@ -29,11 +29,16 @@ import {
 } from './classes.js';
 
 import {
-    arrayToString,
-    mapToString,
-    toNumberArray
+    arrayToString, toNumberArray
 } from './functions.js';
 
+import {
+    getTD, getTH, getTR
+} from './html.js';
+
+import {
+    drawLine, drawLevel, getTextHeight, getTextWidth
+} from './canvas.js';
 //import {JSDOM} from 'jsdom'; // Can't use JSDOM in a browser.
 
 /**
@@ -218,14 +223,7 @@ function parseXML(xml: XMLDocument) {
         let tInfinity: string = "";
         let nInfinity: string = "";
         if (reaction instanceof ReactionWithTransitionState) {
-            let transitionStateID = reaction.transitionState.molecule.id;
-            let transitionStateRole = reaction.transitionState.role;
-            if (transitionStateID != null) {
-                transitionState += transitionStateID
-                if (transitionStateRole != null) {
-                    transitionState += " " + transitionStateRole;
-                }
-            }
+            transitionState = reaction.transitionState.getName();
         }
         let mCRCMethod: MCRCMethod = reaction.mCRCMethod;
         if (mCRCMethod != null) {
@@ -250,12 +248,10 @@ function parseXML(xml: XMLDocument) {
     /**
      * Generate reactions well diagram.
      */
-    /*
-    const diagramElement=document.getElementById("diagram");
-    if (diagramElement !==null) {
-        diagramElement.innerHTML=createDiagram();
+    let canvas: HTMLCanvasElement = document.getElementById("diagram") as HTMLCanvasElement;
+    if (canvas !== null) {
+        drawReactionDiagram(canvas, molecules, reactions);
     }
-    */
 }
 
 
@@ -401,24 +397,33 @@ function getReactions(xml: XMLDocument, molecules: Map<string, Molecule>): Map<s
             let xml_reactants = xml_reactions[i].getElementsByTagName('reactant');
             console.log("xml_reactants.length=" + xml_reactants.length);
             for (let j = 0; j < xml_reactants.length; j++) {
+                let reactant: Reactant;
                 let xml_molecule = xml_reactants[j].getElementsByTagName('molecule')[0];
-                let moleculeID = xml_molecule.getAttribute("ref");
-                console.log("id=" + moleculeID);
-                let role = xml_molecule.getAttribute("role");
-                let reactant = new Reactant(molecules.get(moleculeID), role);
-                //console.log("reactant=" + reactant.toString());
-                reactants.set(moleculeID, reactant);
+                let moleculeID: string = xml_molecule.getAttribute("ref");
+                let role: string = xml_molecule.getAttribute("role");
+                let molecule: Molecule = molecules.get(moleculeID);
+                if (molecule != null) {
+                    reactant = new Reactant(molecule, role);
+                    reactants.set(moleculeID, reactant);
+                } else {
+                    console.log("WARNING: No molecule with id=" + moleculeID + " failed to add reactant in reaction.");
+                }
             }
             // Load products.
             let products: Map<string, Product> = new Map([]);
             let xml_products = xml_reactions[i].getElementsByTagName('product');
             for (let j = 0; j < xml_products.length; j++) {
+                let product: Product;
                 let xml_molecule = xml_products[j].getElementsByTagName('molecule')[0];
-                let moleculeID = xml_molecule.getAttribute("ref");
-                let role = xml_molecule.getAttribute("role");
-                let product = new Product(molecules.get(moleculeID), role);
-                //console.log("product=" + product.toString());
-                products.set(moleculeID, product);
+                let moleculeID: string = xml_molecule.getAttribute("ref");
+                let role: string = xml_molecule.getAttribute("role");
+                let molecule: Molecule = molecules.get(moleculeID);
+                if (molecule != null) {
+                    product = new Product(molecule, role);
+                    products.set(moleculeID, product);
+                } else {
+                    console.log("WARNING: No molecule with id=" + moleculeID + " failed to add product in reaction.");
+                }
             }
             // Load MCRCMethod.
             let mCRCMethod: MCRCMethod;
@@ -537,48 +542,6 @@ function getReactions(xml: XMLDocument, molecules: Map<string, Molecule>): Map<s
     return reactions;
 }
 
-
-
-/**
- * Create a table header row.
-* @param {string[]} headings The headings.
-* @returns {string} Table row with headings.
-*/
-function getTH(headings: string[]): string {
-    var th = "";
-    for (let i = 0; i < headings.length; i++) {
-        th += "<th>" + headings[i] + "</th>"
-    }
-    return getTR(th);
-}
-
-/**
- * Create a table cell.
-* @param {string} x A cell for a table row.
-* @returns {string} x wrapped in td tags.
-*/
-function getTD(x: string): string {
-    return "<td>" + x + "</td>";
-}
-
-/**
- * Create a table row.
-* @param {string} x A row for a table.
-* @returns {string} x wrapped in tr tags.
-*/
-function getTR(x: string): string {
-    return "<tr>" + x + "</tr>\n";
-}
-
-/**
- * Create a table.
-* @param {string} x Table rows for a table.
-* @returns {string} x wrapped in table tags.
-*/
-function getTable(x: string): string {
-    return "<table>" + x + "</table>";
-}
-
 /**
  * Convert XML to HTML.
  * @param {string} text The XML text.
@@ -592,193 +555,126 @@ function XMLToHTML(text: string): string {
         .replace(/  /g, "&nbsp;&nbsp;");
 }
 
-/*
-function createDiagram() {
-    console.log("createDiagram");
-    const canvas=document.getElementById("diagram");
-    const ctx=canvas.getContext("2d");
-    ctx.fillStyle="#FF0000";
-    canvas.height=canvas.width;
+/**
+ * Create a diagram.
+ * @param {Map<string, Molecule>} molecules The molecules.
+ * @param {Map<string, Reaction>} reactions The reactions.
+ * @returns {HTMLCanvasElement} The diagram.
+ */
+function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, Molecule>,
+    reactions: Map<string, Reaction>): void {
+    console.log("getReactionDiagram");
+    const ctx: CanvasRenderingContext2D = canvas.getContext("2d") as CanvasRenderingContext2D;
+    // TODO: Set styles depending on dark/light mode settings of users browser and not hard code.
+    let white = "white";
+    let black = "black";
+    let green = "green";
+    let red = "red";
+    let blue = "blue";
+    let yellow = "yellow";
+    let background = "black";
+    let foreground = "white";
+    ctx.fillStyle = background;
+    canvas.height = canvas.width;
     console.log("canvas.width=" + canvas.width);
     console.log("canvas.height=" + canvas.height);
     ctx.transform(1, 0, 0, -1, 0, canvas.height)
 
     // Get text height for font size.
-    let th=getTextHeight(ctx, "Aj");
+    let th = getTextHeight(ctx, "Aj");
     console.log("th=" + th);
 
-    let black="black";
-    let green="green";
-
-    // The number of reactions and transitions.
-    var nReactionsAndTransitions=reactionsInformation.size + transitions.size;
-    console.log("nReactionsAndTransitions=" + nReactionsAndTransitions);
-
-    let xMax=canvas.height;
-    let slope=0.5;
-
-    //let firstReaction=reactionsInformation.entries().next().key;
-    //console.log("firstReaction=" + firstReaction);
-    //let intercept=moleculeEnergies.get(firstReaction);
-
-    let x00=0;
-    let y00=null;
-
+    let x0: number = 0;
+    let y0: number;
+    let x1: number;
+    let y1: number;
+    let tw: number;
     // Go through reactionInformation and draw lines.
-    reactionsInformation.forEach(function (reactionMap, id) {
+    reactions.forEach(function (reaction, id) {
         console.log("id=" + id);
-        let reactants=reactionMap.get("reactants");
-        let firstReactant=reactants.values().next().value;
-        console.log("firstReactant=" + firstReactant);
-        let reactantLabel=reactionMap.get("reactantLabel");
-        console.log("reactantLabel=" + reactantLabel);
-        let y01=moleculeEnergies.get(firstReactant);
-        console.log("moleculeEnergy=" + y01);
-        // Get text width.
-        let tw=Math.max(getTextWidth(ctx, y01), getTextWidth(ctx, reactantLabel));
-        console.log("tw=" + tw);
-        let x01=x00 + tw;
-        if (y00==null) {
-            y00=y01;
+        console.log("reaction=" + reaction);
+        // Get TransitionState if there is one.
+        let transitionState: TransitionState;
+        if (reaction instanceof ReactionWithTransitionState) {
+            transitionState = reaction.transitionState;
+            console.log("transitionState=" + transitionState);
+        }
+        // Get the reactant and label and set y01 from energy of the reactant with role deficientReactant.
+        let reactant: Reactant = reaction.reactants.values().next().value as Reactant;
+        console.log("reactant=" + reactant);
+        let reactionLabel = reaction.getReactantsLabel();
+        if (y0 == null) {
+            y0 = reactant.molecule.getEnergy();
+            // Get text width.
+            tw = Math.max(getTextWidth(ctx, y0.toString()), getTextWidth(ctx, reactionLabel));
+            //console.log("tw=" + tw);
+            x1 = x0 + tw;
+            y1 = y0;
             // Draw horizontal line and add label.
-            drawLevel(ctx, green, 4, x00, y00, x01, y01, th, reactantLabel);
-            x00=x01;
-            let x0=x01;
-            let y0=y01;
-            // Get Product
-            let products=reactionMap.get("products");
-            console.log("products=" + products);
-            console.log("products.size=" + products.size);
-            let i=0;
-            reactionMap.get("products").forEach(function (product) {
-                console.log("product=" + product);
+            drawLevel(ctx, green, 4, x0, y0, x1, y1, th, reactionLabel);
+            x0 = x1;
+            let i: number = 0;
+            // Go through and transition state.
+            if (transitionState != null) {
                 i++;
-                let y1=moleculeEnergies.get(product);
-                if (y1==null) {
-                    console.log("y1=" + y1);
-                    throw "exit";
-                } else {
-                    let x1=x0 + (tw * i);
-                    console.log("moleculeEnergy=" + y1);
-                    // Draw connector line.
-                    drawLine(ctx, black, 2, x0, y0, x1, y1);
-                    x0=x1;
-                    x1=x0 + tw;
-                    y0=y1;
-                    throw "exit";
-                }
+                x0 = x1;
+                y0 = y1;
+                x1 = x0 + tw;
+                y1 = transitionState.molecule.getEnergy();
+                // Draw connector line.
+                drawLine(ctx, black, 2, x0, y0, x1, y1);
+                x0 = x1;
+                x1 = x0 + tw;
+                y0 = y1;
+                // Draw horizontal line and add label.
+                drawLevel(ctx, green, 4, x0, y0, x1, y0, th, transitionState.getName());
+                x0 = x1;
+            }
+            // Go through products and draw lines.
+            reaction.products.forEach(function (product) {
+                i++;
+                x1 = x0 + (tw * i);
+                y1 = product.molecule.getEnergy();
+                // Draw connector line.
+                drawLine(ctx, black, 2, x0, y0, x1, y1);
+                x0 = x1;
+                x1 = x0 + tw;
+                y0 = y1;
+                // Draw horizontal line and add label.
+                drawLevel(ctx, green, 4, x0, y0, x1, y0, th, product.molecule.id);
+                x0 = x1;
             });
         } else {
-            let tss=reactantToTransitionStates.get(reactantLabel);
-            if (tss !=null) {
-                let x0=x01;
-                let y0=y01;
-                let i=0;
-                // Iterate over each transition state.
-                tss.forEach(function (ts) {
-                    i++;
-                    console.log("ts=" + ts);
-                    let y1=moleculeEnergies.get(ts);
-                    let x1=x0 + (tw * i);
-                    console.log("moleculeEnergy=" + y1);
-                    tw=Math.max(getTextWidth(ctx, y1), getTextWidth(ctx, ts));
-                    reactantLabel=ts;
-                    // Draw connector line.
-                    drawLine(ctx, black, 2, x0, y0, x1, y1);
-                    x0=x1;
-                    x1=x0 + tw;
-                    y0=y1;
-                    // Draw horizontal line and add label.
-                    drawLevel(ctx, green, 4, x0, y0, x1, y1, th, reactantLabel);
-                    x0=x1;
-                });
-            } else {
+            /*
+            // x0 = x01;
+            // y0 = y01;
+            let i: number = 0;
+            // Go through and transition state.
+            if (transitionState != null) {
+                i++;
+                x1 = x0 + tw;
+                y1 = transitionState.molecule.getEnergy();
                 // Draw connector line.
-                drawLine(ctx, black, 2, x00, y00, x01, y01);
-                x00=x01;
-                x01=x00 + tw;
-                y00=y01;
+                drawLine(ctx, black, 2, x0, y0, x1, y1);
+                x0 = x1;
+                x1 = x0 + tw;
+                y0 = y1;
                 // Draw horizontal line and add label.
-                drawLevel(ctx, green, 4, x00, y00, x01, y00, th, reactantLabel);
-                x00=x01;
+                drawLevel(ctx, green, 4, x0, y0, x1, y0, th, transitionState.getName());
+                x0 = x1;
             }
+            // Go through products and draw lines.
+            reaction.products.forEach(function (product) {
+                i++;
+                x1 = x0 + (tw * i);
+                y1 = product.molecule.getEnergy();
+                // Draw connector line.
+                drawLine(ctx, black, 2, x0, y0, x1, y1);
+                x0 = x1;
+                x1 = x0 + tw;
+                y0 = y1;
+            });
+            */
         }
-    })
-    console.log(intercept);
-
-    function f(x) {
-        return x * slope + intercept;
-    }
-    return canvas
-}
-*/
-
-function drawLevel(ctx, strokeStyle, strokewidth, x0, y0, x1, y1, th, reactantLabel) {
-    writeText(ctx, y1, strokeStyle, x0, y1 + th);
-    writeText(ctx, reactantLabel, strokeStyle, x0, y1 - th);
-    drawLine(ctx, strokeStyle, strokewidth, x0, y0, x1, y1);
-}
-
-/**
- * Draw a line (segment) on the canvas.
- * @param {CanvasRenderingContext2D} ctx The context to use.
- * @param {string} strokeStyle The name of a style to use for the line.
- * @param {Integer} x1 The start x-coordinate of the line.
- * @param {Integer} y1 The start y-coordinate of the line.
- * @param {Integer} x2 The end x-coordinate of the line.
- * @param {Integer} y2 The end y-coordinate of the line.
- */
-function drawLine(ctx: CanvasRenderingContext2D, strokeStyle: string, strokewidth: number,
-    x1: number, y1: number, x2: number, y2: number) {
-    // Save the context (to restore after).
-    ctx.save();
-    ctx.strokeStyle = strokeStyle;
-    ctx.lineWidth = strokewidth;
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-    // Restore the context.
-    ctx.restore();
-}
-
-/**
- * Writes text to the canvas. (It is probably better to write all the labels in one go.)
- * @param {CanvasRenderingContext2D} ctx The context to use.
- * @param {string} text The text to write.
- * @param {string} colour The colour of the text.
- * @param {number} x The horizontal position of the text.
- * @param {number} y The vertical position of the text.
- */
-function writeText(ctx: CanvasRenderingContext2D, text: string, colour: string, x: number, y: number) {
-    // Save the context (to restore after).
-    ctx.save();
-    // Translate to the point where text is to be added.
-    ctx.translate(x, y);
-    // Invert Y-axis.
-    ctx.scale(1, -1);
-    // Set the text colour.
-    ctx.fillStyle = colour;
-    // Write the text.
-    ctx.fillText(text, 0, 0);
-    // Restore the context.
-    ctx.restore();
-}
-
-/**
- * @param {CanvasRenderingContext2D} ctx The context to use.
- * @param {string} text The text to get the height of.
- * @returns {number} The height of the text in pixels.
- */
-function getTextHeight(ctx: CanvasRenderingContext2D, text: string): number {
-    var fontMetric = ctx.measureText(text);
-    return fontMetric.actualBoundingBoxAscent + fontMetric.actualBoundingBoxDescent;
-}
-
-/**
- * @param {CanvasRenderingContext2D} ctx The context to use.
- * @param {string} text The text to get the width of.
- * @returns {number} The width of the text in pixels.
- */
-function getTextWidth(ctx: CanvasRenderingContext2D, text: string): number {
-    return ctx.measureText(text).width;
+    });
 }

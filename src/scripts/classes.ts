@@ -212,6 +212,9 @@ export class Reactant extends MR {
     toString() {
         return `Reactant(${super.toString()})`;
     }
+    getMolecule(): Molecule {
+        return this.molecule;
+    }
 }
 
 /**
@@ -239,6 +242,9 @@ export class TransitionState extends MR {
     }
     toString() {
         return `TransitionState(${super.toString()})`;
+    }
+    getName(): string {
+        return this.molecule.id;
     }
 }
 
@@ -522,6 +528,16 @@ export class Reaction {
             `reactants(${mapToString(this.reactants)}), ` +
             `products(${mapToString(this.products)}), ` +
             `mCRCMethod(${this.mCRCMethod ? this.mCRCMethod.toString() : 'null'}))`;
+    }
+    getReactantsLabel(): string {
+        return Array.from(this.reactants.values()).map(reactant => reactant.molecule.id).join(' + ');
+    }
+    getProductsLabel(): string {
+        return Array.from(this.products.values()).map(product => product.molecule.id).join(' + ');
+    }
+    getLabel(): string {
+        let label: string = this.getReactantsLabel() + ' -> ' + this.getProductsLabel();
+        return label;
     }
 }
 

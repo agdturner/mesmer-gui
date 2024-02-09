@@ -10,6 +10,6 @@
     "typeRoots": ["./node_modules/@types", "./types"]
   },
   "files": [
-    "scripts/functions.ts", "scripts/classes.ts", "scripts/load_xml.ts"
+    "scripts/functions.ts", "scripts/classes.ts", "scripts/html.ts", "scripts/canvas.ts", "scripts/load_xml.ts"
   ]
 }
