@@ -12,7 +12,7 @@
  */
 export function drawLevel(ctx, strokeStyle, strokewidth, x0, y0, x1, y1, th, reactantLabel) {
     writeText(ctx, y1.toString(), strokeStyle, x0, y1 + th);
-    writeText(ctx, reactantLabel, strokeStyle, x0, y1 - th);
+    writeText(ctx, reactantLabel, strokeStyle, x0, y1 + 3 * th);
     drawLine(ctx, strokeStyle, strokewidth, x0, y0, x1, y1);
 }
 /**
@@ -25,15 +25,12 @@ export function drawLevel(ctx, strokeStyle, strokewidth, x0, y0, x1, y1, th, rea
  * @param {Integer} y2 The end y-coordinate of the line.
  */
 export function drawLine(ctx, strokeStyle, strokewidth, x1, y1, x2, y2) {
-    // Save the context (to restore after).
-    ctx.save();
+    ctx.beginPath();
     ctx.strokeStyle = strokeStyle;
     ctx.lineWidth = strokewidth;
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.stroke();
-    // Restore the context.
-    ctx.restore();
 }
 /**
  * Writes text to the canvas. (It is probably better to write all the labels in one go.)

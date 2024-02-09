@@ -13,7 +13,7 @@
 export function drawLevel(ctx: CanvasRenderingContext2D, strokeStyle: string, strokewidth: number, x0: number, y0: number,
     x1: number, y1: number, th: number, reactantLabel: string) {
     writeText(ctx, y1.toString(), strokeStyle, x0, y1 + th);
-    writeText(ctx, reactantLabel, strokeStyle, x0, y1 - th);
+    writeText(ctx, reactantLabel, strokeStyle, x0, y1 + 3 * th);
     drawLine(ctx, strokeStyle, strokewidth, x0, y0, x1, y1);
 }
 
@@ -28,15 +28,12 @@ export function drawLevel(ctx: CanvasRenderingContext2D, strokeStyle: string, st
  */
 export function drawLine(ctx: CanvasRenderingContext2D, strokeStyle: string, strokewidth: number,
     x1: number, y1: number, x2: number, y2: number) {
-    // Save the context (to restore after).
-    ctx.save();
+    ctx.beginPath();
     ctx.strokeStyle = strokeStyle;
     ctx.lineWidth = strokewidth;
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.stroke();
-    // Restore the context.
-    ctx.restore();
 }
 
 /**
