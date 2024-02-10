@@ -71,3 +71,4 @@ export function getTextHeight(ctx, text) {
 export function getTextWidth(ctx, text) {
     return ctx.measureText(text).width;
 }
+//# sourceMappingURL=canvas.js.map

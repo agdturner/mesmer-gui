@@ -34,3 +34,4 @@ export function getTR(x) {
 export function getTable(x) {
     return "<table>" + x + "</table>";
 }
+//# sourceMappingURL=html.js.map
