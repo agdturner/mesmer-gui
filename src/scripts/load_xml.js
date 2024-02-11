@@ -204,11 +204,15 @@ function parseXML(xml) {
         }
     });
     /**
-     * Generate reactions well diagram.
+     * Generate reactions diagram.
      */
     let canvas = document.getElementById("diagram");
+    let font = "14px Arial";
+    let dark = true;
+    let lw = 4;
+    let lwc = 2;
     if (canvas !== null) {
-        drawReactionDiagram(canvas, molecules, reactions);
+        drawReactionDiagram(canvas, molecules, reactions, dark, font, lw, lwc);
     }
 }
 /**
@@ -224,9 +228,9 @@ function getMolecules(xml) {
     console.log("Number of molecules=" + xml_molecules_length);
     // Process each molecule.
     for (let i = 0; i < xml_molecules.length; i++) {
-        var energy = "";
-        var rotationalConstants = "";
-        var vibrationalFrequencies = "";
+        //var energy = "";
+        //var rotationalConstants = "";
+        //var vibrationalFrequencies = "";
         let id = xml_molecules[i].getAttribute("id");
         console.log("id=" + id);
         let description = xml_molecules[i].getAttribute("description");
@@ -522,37 +526,41 @@ function XMLToHTML(text) {
  * Create a diagram.
  * @param {Map<string, Molecule>} molecules The molecules.
  * @param {Map<string, Reaction>} reactions The reactions.
+ * @param {boolean} dark True for dark mode.
  * @returns {HTMLCanvasElement} The diagram.
+ * @param {string} font The font to use.
+ * @param {number} lw The line width of reactants, transition states and products.
+ * @param {string} lwc The line width color to use.
  */
-function drawReactionDiagram(canvas, molecules, reactions) {
+function drawReactionDiagram(canvas, molecules, reactions, dark, font, lw, lwc) {
     console.log("getReactionDiagram");
-    const ctx = canvas.getContext("2d");
     // TODO: Set styles depending on dark/light mode settings of users browser and not hard code.
-    let white = "white";
+    //let white = "white";
     let black = "black";
     let green = "green";
     let red = "red";
     let blue = "blue";
-    let yellow = "yellow";
+    //let yellow = "yellow";
+    let orange = "orange";
     let background = "black";
     let foreground = "white";
-    ctx.fillStyle = background;
-    canvas.height = canvas.width;
-    console.log("canvas.width=" + canvas.width);
-    console.log("canvas.height=" + canvas.height);
-    ctx.transform(1, 0, 0, -1, 0, canvas.height);
+    const ctx = canvas.getContext("2d");
+    //ctx.fillStyle = background;
     // Get text height for font size.
-    let th = getTextHeight(ctx, "Aj");
+    let th = getTextHeight(ctx, "Aj", font);
     console.log("th=" + th);
     // Go through reactions:
-    // 1. Create sets of reactants, products and transition states.
+    // 1. Create sets of reactants, end products, intermediate products and transition states.
     // 2. Create maps of orders and energies.
+    // 3. Calculate maximum energy.
     let reactants = new Set();
     let products = new Set();
+    let intProducts = new Set();
     let transitionStates = new Set();
     let orders = new Map();
     let energies = new Map();
     let i = 0;
+    let energyMax = 0;
     reactions.forEach(function (reaction, id) {
         // Get TransitionState if there is one.
         let transitionState;
@@ -563,10 +571,17 @@ function drawReactionDiagram(canvas, molecules, reactions) {
         //console.log("reactant=" + reactant);
         let reactantsLabel = reaction.getReactantsLabel();
         reactants.add(reactantsLabel);
-        energies.set(reactantsLabel, reaction.getReactantsEnergy());
+        if (products.has(reactantsLabel)) {
+            intProducts.add(reactantsLabel);
+        }
+        let energy = reaction.getReactantsEnergy();
+        energyMax = Math.max(energyMax, energy);
+        energies.set(reactantsLabel, energy);
         let productsLabel = reaction.getProductsLabel();
         products.add(productsLabel);
-        energies.set(productsLabel, reaction.getProductsEnergy());
+        energy = reaction.getProductsEnergy();
+        energyMax = Math.max(energyMax, energy);
+        energies.set(productsLabel, energy);
         if (!orders.has(reactantsLabel)) {
             orders.set(reactantsLabel, i);
             i++;
@@ -585,7 +600,9 @@ function drawReactionDiagram(canvas, molecules, reactions) {
                 let tsn = transitionState.getName();
                 transitionStates.add(tsn);
                 orders.set(tsn, i);
-                energies.set(tsn, transitionState.molecule.getEnergy());
+                energy = transitionState.molecule.getEnergy();
+                energyMax = Math.max(energyMax, energy);
+                energies.set(tsn, energy);
                 i++;
             }
             orders.set(productsLabel, i);
@@ -596,7 +613,9 @@ function drawReactionDiagram(canvas, molecules, reactions) {
                 let tsn = transitionState.getName();
                 transitionStates.add(tsn);
                 orders.set(tsn, i);
-                energies.set(tsn, transitionState.molecule.getEnergy());
+                energy = transitionState.molecule.getEnergy();
+                energyMax = Math.max(energyMax, energy);
+                energies.set(tsn, energy);
                 i++;
             }
             orders.set(productsLabel, i);
@@ -605,6 +624,7 @@ function drawReactionDiagram(canvas, molecules, reactions) {
     });
     console.log("orders=" + mapToString(orders));
     console.log("energies=" + mapToString(energies));
+    console.log("energyMax=" + energyMax);
     console.log("reactants=" + reactants);
     console.log("products=" + products);
     console.log("transitionStates=" + transitionStates);
@@ -614,11 +634,14 @@ function drawReactionDiagram(canvas, molecules, reactions) {
         reorders[value] = key;
     });
     console.log("reorders=" + arrayToString(reorders));
-    // Iterate through the reorders and capture coordinates for connecting lines.
+    // Iterate through the reorders:
+    // 1. Capture coordinates for connecting lines.
+    // 2. Store maximum x.
     let x0 = 0;
     let y0;
     let x1;
     let y1;
+    let xmax = 0;
     let tw;
     let textSpacing = 5; // Spacing between end of line and start of text.
     let stepSpacing = 10; // Spacing between steps.
@@ -631,11 +654,13 @@ function drawReactionDiagram(canvas, molecules, reactions) {
     reorders.forEach(function (value) {
         let energy = energies.get(value);
         // Get text width.
-        tw = Math.max(getTextWidth(ctx, energy.toString()), getTextWidth(ctx, value));
+        tw = Math.max(getTextWidth(ctx, energy.toString(), font), getTextWidth(ctx, value, font));
         x1 = x0 + tw + textSpacing;
-        y0 = energy;
-        y1 = energy;
-        // Draw horizontal line and add label. (No longer done here but done later so labels are on top of lines.)
+        y0 = energy + lw;
+        y1 = y0;
+        // Draw horizontal line and add label.
+        // (The drawing is now not done here but done later so labels are on top of lines.)
+        // The code is left here commented out for reference.
         //drawLevel(ctx, green, 4, x0, y0, x1, y1, th, value);
         reactantsInXY.set(value, [x0, y0]);
         reactantsOutXY.set(value, [x1, y1]);
@@ -648,7 +673,15 @@ function drawReactionDiagram(canvas, molecules, reactions) {
             transitionStatesOutXY.set(value, [x1, y1]);
         }
         x0 = x1 + stepSpacing;
+        xmax = x1;
     });
+    // Set canvas width to maximum x.
+    canvas.width = xmax;
+    console.log("canvas.width=" + canvas.width);
+    // Set canvas height to maximum energy plus the label.
+    canvas.height = energyMax + (4 * th) + (2 * lw);
+    console.log("canvas.height=" + canvas.height);
+    ctx.transform(1, 0, 0, -1, 0, canvas.height);
     // Go through reactions and draw connecting lines.
     reactions.forEach(function (reaction, id) {
         //console.log("id=" + id);
@@ -667,12 +700,12 @@ function drawReactionDiagram(canvas, molecules, reactions) {
         if (transitionState != null) {
             let transitionStateLabel = transitionState.getName();
             let transitionStateInXY = transitionStatesInXY.get(transitionStateLabel);
-            drawLine(ctx, black, 2, reactantOutXY[0], reactantOutXY[1], transitionStateInXY[0], transitionStateInXY[1]);
+            drawLine(ctx, black, lwc, reactantOutXY[0], reactantOutXY[1], transitionStateInXY[0], transitionStateInXY[1]);
             let transitionStateOutXY = transitionStatesOutXY.get(transitionStateLabel);
-            drawLine(ctx, black, 2, transitionStateOutXY[0], transitionStateOutXY[1], productInXY[0], productInXY[1]);
+            drawLine(ctx, black, lwc, transitionStateOutXY[0], transitionStateOutXY[1], productInXY[0], productInXY[1]);
         }
         else {
-            drawLine(ctx, black, 2, reactantOutXY[0], reactantOutXY[1], productInXY[0], productInXY[1]);
+            drawLine(ctx, black, lwc, reactantOutXY[0], reactantOutXY[1], productInXY[0], productInXY[1]);
         }
     });
     // Draw horizontal lines and labels.
@@ -680,26 +713,31 @@ function drawReactionDiagram(canvas, molecules, reactions) {
     reactants.forEach(function (value) {
         let energy = energies.get(value);
         let x0 = reactantsInXY.get(value)[0];
-        let y0 = energy;
+        let y = energy + lw;
         let x1 = reactantsOutXY.get(value)[0];
-        let y1 = energy;
-        drawLevel(ctx, blue, 4, x0, y0, x1, y1, th, value);
+        let energyString = energy.toString();
+        drawLevel(ctx, blue, lw, x0, y, x1, y, font, th, value, energyString);
     });
     products.forEach(function (value) {
         let energy = energies.get(value);
         let x0 = productsInXY.get(value)[0];
-        let y0 = energy;
+        let y = energy + lw;
         let x1 = productsOutXY.get(value)[0];
-        let y1 = energy;
-        drawLevel(ctx, green, 4, x0, y0, x1, y1, th, value);
+        let energyString = energy.toString();
+        if (intProducts.has(value)) {
+            drawLevel(ctx, orange, lw, x0, y, x1, y, font, th, value, energyString);
+        }
+        else {
+            drawLevel(ctx, green, lw, x0, y, x1, y, font, th, value, energyString);
+        }
     });
     transitionStates.forEach(function (value) {
         let energy = energies.get(value);
         let x0 = transitionStatesInXY.get(value)[0];
-        let y0 = energy;
+        let y = energy + lw;
         let x1 = transitionStatesOutXY.get(value)[0];
-        let y1 = energy;
-        drawLevel(ctx, red, 4, x0, y0, x1, y1, th, value);
+        let energyString = energy.toString();
+        drawLevel(ctx, red, lw, x0, y, x1, y, font, th, value, energyString);
     });
 }
 //# sourceMappingURL=load_xml.js.map
