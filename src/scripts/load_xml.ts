@@ -578,13 +578,16 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
     // Get text height for font size.
     let th = getTextHeight(ctx, "Aj");
     console.log("th=" + th);
-    let i: number = 0;
-    // Go through reactions and set orders and energies.
-    let orders: Map<string, number> = new Map();
-    let energies: Map<string, number> = new Map();
+
+    // Go through reactions:
+    // 1. Create sets of reactants, products and transition states.
+    // 2. Create maps of orders and energies.
     let reactants: Set<string> = new Set();
     let products: Set<string> = new Set();
     let transitionStates: Set<string> = new Set();
+    let orders: Map<string, number> = new Map();
+    let energies: Map<string, number> = new Map();
+    let i: number = 0;
     reactions.forEach(function (reaction, id) {
         // Get TransitionState if there is one.
         let transitionState: TransitionState;
@@ -647,7 +650,7 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
     });
     console.log("reorders=" + arrayToString(reorders));
 
-    // Iterate through the reorders: draw horizontal lines and capture coordinates for connecting lines.
+    // Iterate through the reorders and capture coordinates for connecting lines.
     let x0: number = 0;
     let y0: number;
     let x1: number;
@@ -668,8 +671,8 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
         x1 = x0 + tw + textSpacing;
         y0 = energy;
         y1 = energy;
-        // Draw horizontal line and add label.
-        drawLevel(ctx, green, 4, x0, y0, x1, y1, th, value);
+        // Draw horizontal line and add label. (No longer done here but done later so labels are on top of lines.)
+        //drawLevel(ctx, green, 4, x0, y0, x1, y1, th, value);
         reactantsInXY.set(value, [x0, y0]);
         reactantsOutXY.set(value, [x1, y1]);
         if (products.has(value)) {
@@ -711,5 +714,32 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
                 productInXY[0], productInXY[1]);
 
         }
+    });
+
+    // Draw horizontal lines and labels.
+    // (This is done last so that the labels are on top of the vertical lines.)
+    reactants.forEach(function (value) {
+        let energy: number = energies.get(value);
+        let x0: number = reactantsInXY.get(value)[0];
+        let y0: number = energy;
+        let x1: number = reactantsOutXY.get(value)[0];
+        let y1: number = energy;
+        drawLevel(ctx, blue, 4, x0, y0, x1, y1, th, value);
+    });
+    products.forEach(function (value) {
+        let energy: number = energies.get(value);
+        let x0: number = productsInXY.get(value)[0];
+        let y0: number = energy;
+        let x1: number = productsOutXY.get(value)[0];
+        let y1: number = energy;
+        drawLevel(ctx, green, 4, x0, y0, x1, y1, th, value);
+    });
+    transitionStates.forEach(function (value) {
+        let energy: number = energies.get(value);
+        let x0: number = transitionStatesInXY.get(value)[0];
+        let y0: number = energy;
+        let x1: number = transitionStatesOutXY.get(value)[0];
+        let y1: number = energy;
+        drawLevel(ctx, red, 4, x0, y0, x1, y1, th, value);
     });
 }
