@@ -11,9 +11,22 @@
  * @param reactantLabel The label for the reactant.
  */
 export function drawLevel(ctx, strokeStyle, strokewidth, x0, y0, x1, y1, th, reactantLabel) {
-    writeText(ctx, y1.toString(), strokeStyle, x0, y1 + th);
-    writeText(ctx, reactantLabel, strokeStyle, x0, y1 + 3 * th);
+    let x_centre = x0 + ((x1 - x0) / 2);
+    let text = y1.toString();
+    writeText(ctx, text, strokeStyle, getTextStartX(ctx, text, x_centre), y1 + th);
+    text = reactantLabel;
+    writeText(ctx, text, strokeStyle, getTextStartX(ctx, text, x_centre), y1 + 3 * th);
     drawLine(ctx, strokeStyle, strokewidth, x0, y0, x1, y1);
+}
+/**
+ * @param {CanvasRenderingContext2D} ctx The context to use.
+ * @param {string} text The text to get the start x-coordinate of.
+ * @param {number} x_centre The x-coordinate of the centre of the text.
+ * @returns The x-coordinate of the start of the text.
+ */
+function getTextStartX(ctx, text, x_centre) {
+    let tw = getTextWidth(ctx, text);
+    return x_centre - (tw / 2);
 }
 /**
  * Draw a line (segment) on the canvas.
