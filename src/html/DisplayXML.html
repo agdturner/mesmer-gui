@@ -27,7 +27,12 @@
 
 <body>
 
-  <!--<button type="button" onclick="load('/src/data/examples/AcetylO2/Acetyl_O2_associationEx.xml')">Load XML</button>-->
+  <form id="uploadForm">
+    <button onclick="document.getElementById('inputXML').click();">Open</button>
+    <input id="inputXML" type="file" name="name" style="display: none;" />
+  </form>
+
+  <button id="loadButton" type="button" onclick="selectLoadOption()">Load</button>
 
   <!-- Main heading. -->
   <h1 id="metitle"></h1>

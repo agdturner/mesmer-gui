@@ -1,22 +1,5 @@
 import {
-    ActivationEnergy,
-    Atom,
-    Bond,
-    DefinedSumOfStates,
-    MCRCMethod,
-    MesmerILT,
-    Molecule,
-    NInfinity,
-    PreExponential,
-    Product,
-    PropertyArray,
-    PropertyScalar,
-    Reactant,
-    Reaction,
-    ReactionWithTransitionState,
-    TransitionState,
-    Tunneling,
-    ZhuNakamuraCrossing
+    ActivationEnergy, Atom, Bond, DefinedSumOfStates, MCRCMethod, MesmerILT, Molecule, NInfinity, PreExponential, Product, PropertyArray, PropertyScalar, Reactant, Reaction, ReactionWithTransitionState, TransitionState, Tunneling, ZhuNakamuraCrossing
 } from './classes.js';
 
 import {
@@ -37,7 +20,7 @@ import {
 /**
  * A map of molecules with Molecule.id as key and Molecules as values.
  */
-const molecules = new Map<string, Molecule>([]);
+//const molecules = new Map<string, Molecule>([]);
 
 /**
  * For storing the maximum molecule energy in a reaction.
@@ -52,11 +35,97 @@ var minMoleculeEnergy = Infinity;
 /**
  * A map of reactions with Reaction.id as keys and Reactions as values.
  */
-const reactions = new Map<string, Reaction>([]);
+//const reactions = new Map<string, Reaction>([]);
+
+declare global {
+    interface Window {
+        selectLoadOption(): void;
+    }
+}
 
 const xmlTextElement = document.getElementById("xml_text");
-if (xmlTextElement) {
-    xmlTextElement.innerHTML = load('/src/data/examples/AcetylO2/Acetyl_O2_associationEx.xml');
+
+/*
+window.selectLoadOption = function() {
+    let input = prompt("Enter what you want to load:");
+    if (input) {
+        // Here you can handle the selected input
+        console.log(input);
+        if (xmlTextElement) {
+            //xmlTextElement.innerHTML = load('/src/data/examples/AcetylO2/Acetyl_O2_associationEx.xml');
+            //xmlTextElement.innerHTML = load('/src/data/examples/AcetylPrior/AcetylPrior.xml');
+            xmlTextElement.innerHTML = load(input);
+        }
+    }
+}
+*/
+
+window.selectLoadOption = function () {
+    let inputElement = document.createElement('input');
+    inputElement.type = 'file';
+    inputElement.onchange = function () {
+        for (let i = 0; i < inputElement.files.length; i++) {
+            console.log("inputElement.files[" + i + "]=" + inputElement.files[i]);
+        }
+        let file = inputElement.files[0];
+        console.log("file=" + file);
+        /*
+        if (file) {
+            console.log(file.name);
+            if (xmlTextElement) {
+                //xmlTextElement.innerHTML = load('/src/data/examples/AcetylO2/Acetyl_O2_associationEx.xml');
+                //xmlTextElement.innerHTML = load('/src/data/examples/AcetylPrior/AcetylPrior.xml');
+                xmlTextElement.innerHTML = load(file.name);
+            }
+        }
+        */
+        /*
+        if (file) {
+            console.log(file.name);
+            if (xmlTextElement) {
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    let contents = e.target.result as string;
+                    console.log("contents=" + contents);
+                    xmlTextElement.innerHTML = load(contents);
+                };
+                reader.readAsText(file);
+            }
+        }
+        */
+        if (file) {
+            console.log(file.name);
+            if (xmlTextElement) {
+                let reader = new FileReader();
+                let chunkSize = 1024 * 1024; // 1MB
+                let start = 0;
+                let contents = '';
+        
+                reader.onload = function (e) {
+                    contents += e.target.result as string;
+                    if (start < file.size) {
+                        // Read the next chunk
+                        let blob = file.slice(start, start + chunkSize);
+                        reader.readAsText(blob);
+                        start += chunkSize;
+                    } else {
+                        // All chunks have been read
+                        console.log("contents=" + contents);
+                        xmlTextElement.innerHTML = XMLToHTML(contents);
+                        let parser=new DOMParser();
+                        let xml=parser.parseFromString(contents, "text/xml");
+                        parseXML(xml);
+                    }
+                };
+        
+                // Read the first chunk
+                let blob = file.slice(start, start + chunkSize);
+                reader.readAsText(blob);
+                start += chunkSize;
+            }
+        }
+    };
+    inputElement.click();
 }
 
 /**
@@ -66,7 +135,8 @@ function load(xmlFile: string): string {
     console.log("xmlFile=" + xmlFile);
     let xml: XMLDocument;
     let text: string;
-    // This works in the browser enviornment, but not in a node enviornment where somehting like JDOM is wanted.
+    // The following works in the browser environment.
+    // To work in a node environment, something like JDOM is wanted...
     let request = new XMLHttpRequest();
     request.open("GET", xmlFile, true);
     request.onreadystatechange = function () {
@@ -125,6 +195,7 @@ function load(xmlFile: string): string {
       }
     );
     */
+    console.log("text=" + text);
     return text;
 }
 
@@ -191,7 +262,8 @@ function parseXML(xml: XMLDocument) {
         }
         let rotationConstants: string = arrayToString(molecule.getRotationConstants());
         let vibrationFrequencies: string = arrayToString(molecule.getVibrationFrequencies());
-        moleculesTable += getTR(getTD(id) + getTD(energy) + getTD(rotationConstants) + getTD(vibrationFrequencies));
+        moleculesTable += getTR(getTD(id) + getTD(energy, true) + getTD(rotationConstants, true)
+            + getTD(vibrationFrequencies, true));
     });
     const moleculesElement = document.getElementById("molecules");
     if (moleculesElement !== null) {
@@ -231,7 +303,8 @@ function parseXML(xml: XMLDocument) {
             }
         }
         reactionsTable += getTR(getTD(id) + getTD(reactants) + getTD(products) + getTD(transitionState)
-            + getTD(preExponential) + getTD(activationEnergy) + getTD(tInfinity) + getTD(nInfinity));
+            + getTD(preExponential, true) + getTD(activationEnergy, true) + getTD(tInfinity, true)
+            + getTD(nInfinity, true));
         const reactionsElement = document.getElementById("reactions");
         if (reactionsElement !== null) {
             reactionsElement.innerHTML = reactionsTable;
@@ -296,7 +369,7 @@ function getMolecules(xml: XMLDocument): Map<string, Molecule> {
             let xml_bonds = xml_bondArray.getElementsByTagName("bond");
             for (let j = 0; j < xml_bonds.length; j++) {
                 let xml_bond = xml_bonds[j];
-                let atomRefs2: string[] = xml_bond.getAttribute("atomRefs2").trim().split(" ");
+                let atomRefs2: string[] = xml_bond.getAttribute("atomRefs2").trim().split(/\s+/);
                 let bond = new Bond(atoms.get(atomRefs2[0]), atoms.get(atomRefs2[1]), xml_bond.getAttribute("order"));
                 //console.log(bond.toString());
                 bonds.set(id, bond);
@@ -333,7 +406,7 @@ function getMolecules(xml: XMLDocument): Map<string, Molecule> {
                         //console.log("units=" + units);
                         let rotationalConstants = xml_array.childNodes[0];
                         if (rotationalConstants != null) {
-                            let values: number[] = toNumberArray(rotationalConstants.nodeValue.trim().split(" "));
+                            let values: number[] = toNumberArray(rotationalConstants.nodeValue.trim().split(/\s+/));
                             properties.set(dictRef, new PropertyArray(values, units));
                         }
                     }
@@ -344,7 +417,7 @@ function getMolecules(xml: XMLDocument): Map<string, Molecule> {
                         //console.log("units=" + units);
                         let vibrationalFrequencies = xml_array.childNodes[0];
                         if (vibrationalFrequencies != null) {
-                            let values: number[] = toNumberArray(vibrationalFrequencies.nodeValue.trim().split(" "));
+                            let values: number[] = toNumberArray(vibrationalFrequencies.nodeValue.trim().split(/\s+/));
                             properties.set(dictRef, new PropertyArray(values, units));
                         }
                     }
@@ -622,7 +695,7 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
             i++;
         }
         if (orders.has(productsLabel)) {
-            i --;
+            i--;
             let j: number = orders.get(productsLabel);
             // Move product to end and shift everything back.
             orders.forEach(function (value, key) {
@@ -738,13 +811,13 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
         if (transitionState != null) {
             let transitionStateLabel: string = transitionState.getName();
             let transitionStateInXY: number[] = transitionStatesInXY.get(transitionStateLabel);
-            drawLine(ctx, black, lwc, reactantOutXY[0], reactantOutXY[1], transitionStateInXY[0], 
+            drawLine(ctx, black, lwc, reactantOutXY[0], reactantOutXY[1], transitionStateInXY[0],
                 transitionStateInXY[1]);
-                let transitionStateOutXY: number[] = transitionStatesOutXY.get(transitionStateLabel);
-            drawLine(ctx, black, lwc, transitionStateOutXY[0], transitionStateOutXY[1], 
+            let transitionStateOutXY: number[] = transitionStatesOutXY.get(transitionStateLabel);
+            drawLine(ctx, black, lwc, transitionStateOutXY[0], transitionStateOutXY[1],
                 productInXY[0], productInXY[1]);
         } else {
-            drawLine(ctx, black, lwc, reactantOutXY[0], reactantOutXY[1], 
+            drawLine(ctx, black, lwc, reactantOutXY[0], reactantOutXY[1],
                 productInXY[0], productInXY[1]);
 
         }
@@ -763,7 +836,7 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
     products.forEach(function (value) {
         let energy: number = energies.get(value);
         let x0: number = productsInXY.get(value)[0];
-        let y: number = energy+ lw;
+        let y: number = energy + lw;
         let x1: number = productsOutXY.get(value)[0];
         let energyString: string = energy.toString();
         if (intProducts.has(value)) {
@@ -780,4 +853,12 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
         let energyString: string = energy.toString();
         drawLevel(ctx, red, lw, x0, y, x1, y, font, th, value, energyString);
     });
+}
+
+/**
+ * 
+ */
+function saveXML() {
+    let html_molecules: HTMLElement = document.getElementById("molecules");
+    console.log(html_molecules);
 }

@@ -13,10 +13,16 @@ export function getTH(headings) {
 /**
  * Create a table cell.
  * @param {string} x A cell for a table row.
+ * @param {boolean} contentEditable If true then the cell is set to be editable.
  * @returns {string} x wrapped in td tags.
  */
-export function getTD(x) {
-    return "<td>" + x + "</td>";
+export function getTD(x, contentEditable = false) {
+    let r = "<td";
+    if (contentEditable) {
+        r += " contenteditable=\"true\"";
+    }
+    r += ">" + x + "</td>";
+    return r;
 }
 /**
  * Create a table row.
