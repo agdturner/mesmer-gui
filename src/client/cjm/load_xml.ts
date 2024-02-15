@@ -1,4 +1,4 @@
-import { get } from './util.js';
+import { get, rescale } from './util.js';
 
 import { getAttribute, getFirstElement, getFirstChildNode, getNodeValue } from './xml.js';
 
@@ -758,7 +758,8 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
     let orders: Map<string, number> = new Map();
     let energies: Map<string, number> = new Map();
     let i: number = 0;
-    let energyMax: number = 0;
+    let energyMin: number = Number.MAX_VALUE;
+    let energyMax: number = Number.MIN_VALUE;
     reactions.forEach(function (reaction, id) {
         // Get TransitionState if there is one.
         let transitionState: TransitionState | null = null;
@@ -773,11 +774,13 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
             intProducts.add(reactantsLabel);
         }
         let energy: number = reaction.getReactantsEnergy();
+        energyMin = Math.min(energyMin, energy);
         energyMax = Math.max(energyMax, energy);
         energies.set(reactantsLabel, energy);
         let productsLabel: string = reaction.getProductsLabel();
         products.add(productsLabel);
         energy = reaction.getProductsEnergy();
+        energyMin = Math.min(energyMin, energy);
         energyMax = Math.max(energyMax, energy);
         energies.set(productsLabel, energy);
         if (!orders.has(reactantsLabel)) {
@@ -799,6 +802,7 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
                 transitionStates.add(tsn);
                 orders.set(tsn, i);
                 energy = transitionState.molecule.getEnergy();
+                energyMin = Math.min(energyMin, energy);
                 energyMax = Math.max(energyMax, energy);
                 energies.set(tsn, energy);
                 i++;
@@ -811,6 +815,7 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
                 transitionStates.add(tsn);
                 orders.set(tsn, i);
                 energy = transitionState.molecule.getEnergy();
+                energyMin = Math.min(energyMin, energy);
                 energyMax = Math.max(energyMax, energy);
                 energies.set(tsn, energy);
                 i++;
@@ -822,6 +827,9 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
     console.log("orders=" + mapToString(orders));
     console.log("energies=" + mapToString(energies));
     console.log("energyMax=" + energyMax);
+    console.log("energyMin=" + energyMin);
+    let energyRange: number = energyMax - energyMin;
+    console.log("energyRange=" + energyRange);
     console.log("reactants=" + reactants);
     console.log("products=" + products);
     console.log("transitionStates=" + transitionStates);
@@ -854,10 +862,11 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
         console.log("value=" + value + ".");
         console.log("energies=" + mapToString(energies));
         let energy: number = get(energies, value);
+        let energyRescaled: number = rescale(energyMin, energyRange, 0, canvas.height, energy);
         // Get text width.
         tw = Math.max(getTextWidth(ctx, energy.toString(), font), getTextWidth(ctx, value, font));
         x1 = x0 + tw + textSpacing;
-        y0 = energy + lw;
+        y0 = energyRescaled + lw;
         y1 = y0;
         // Draw horizontal line and add label.
         // (The drawing is now not done here but done later so labels are on top of lines.)
@@ -876,14 +885,24 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
         x0 = x1 + stepSpacing;
         xmax = x1;
     });
-
+    
     // Set canvas width to maximum x.
     canvas.width = xmax;
     console.log("canvas.width=" + canvas.width);
+
     // Set canvas height to maximum energy plus the label.
-    canvas.height = energyMax + (4 * th) + (2 * lw);
-    console.log("canvas.height=" + canvas.height);
-    ctx.transform(1, 0, 0, -1, 0, canvas.height)
+    let canvasHeightWithBorder = canvas.height + (4 * th) + (2 * lw);
+    console.log("canvasHeightWithBorder=" + canvasHeightWithBorder);
+
+    let originalCanvasHeight = canvas.height;
+
+    // Update the canvas height.
+    canvas.height = canvasHeightWithBorder;
+
+    // Set the transformation matrix.
+    //ctx.transform(1, 0, 0, 1, 0, canvasHeightWithBorder);
+    ctx.transform(1, 0, 0, -1, 0, canvasHeightWithBorder)
+    
 
     // Go through reactions and draw connecting lines.
     reactions.forEach(function (reaction, id) {
@@ -910,7 +929,6 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
         } else {
             drawLine(ctx, black, lwc, reactantOutXY[0], reactantOutXY[1],
                 productInXY[0], productInXY[1]);
-
         }
     });
 
@@ -918,16 +936,18 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
     // (This is done last so that the labels are on top of the vertical lines.)
     reactants.forEach(function (value) {
         let energy: number = get(energies, value);
+        let energyRescaled: number = rescale(energyMin, energyRange, 0, originalCanvasHeight, energy);
         let x0: number = get(reactantsInXY, value)[0];
-        let y: number = energy + lw;
+        let y: number = energyRescaled + lw;
         let x1: number = get(reactantsOutXY, value)[0];
         let energyString: string = energy.toString();
         drawLevel(ctx, blue, lw, x0, y, x1, y, font, th, value, energyString);
     });
     products.forEach(function (value) {
         let energy: number = get(energies, value);
+        let energyRescaled: number = rescale(energyMin, energyRange, 0, originalCanvasHeight, energy);
         let x0: number = get(productsInXY, value)[0];
-        let y: number = energy + lw;
+        let y: number = energyRescaled + lw;
         let x1: number = get(productsOutXY, value)[0];
         let energyString: string = energy.toString();
         if (intProducts.has(value)) {
@@ -939,8 +959,9 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
     transitionStates.forEach(function (value) {
         let v: any;
         let energy: number = get(energies, value);
+        let energyRescaled: number = rescale(energyMin, energyRange, 0, originalCanvasHeight, energy);
         let x0: number = get(transitionStatesInXY, value)[0];
-        let y: number = energy + lw;
+        let y: number = energyRescaled + lw;
         let x1: number = get(transitionStatesOutXY, value)[0];
         let energyString: string = energy.toString();
         drawLevel(ctx, red, lw, x0, y, x1, y, font, th, value, energyString);
