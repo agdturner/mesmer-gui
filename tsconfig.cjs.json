@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "outDir": "dist/client/cjm",
+    "rootDir": "src/client/cjm",
+  },
+  "include": [
+    "src/client/cjm/util.ts",
+    "src/client/cjm/xml.ts",
+    "src/client/cjm/functions.ts",
+    "src/client/cjm/classes.ts",
+    "src/client/cjm/html.ts",
+    "src/client/cjm/canvas.ts",
+    "src/client/cjm/load_xml.ts"
+  ],
+  "exclude": [
+    "dist/client/cjm"
+  ]
+}

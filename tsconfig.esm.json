@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types"
+    ],
+    "outDir": "dist/server/esm",
+    "rootDir": "src/server/esm"
+  },
+  "include": [
+    "src/server/esm/server.ts"
+  ],
+  "exclude": [
+    "dist/server/esm"
+  ]
+}
