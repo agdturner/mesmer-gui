@@ -12,7 +12,7 @@
     "src/client/cjm/classes.ts",
     "src/client/cjm/html.ts",
     "src/client/cjm/canvas.ts",
-    "src/client/cjm/load_xml.ts"
+    "src/client/cjm/client.ts"
   ],
   "exclude": [
     "dist/client/cjm"

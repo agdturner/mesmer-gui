@@ -43,3 +43,44 @@ export function getTR(x: string): string {
 export function getTable(x: string): string {
     return "<table>" + x + "</table>";
 }
+
+/**
+ * Create a div.
+ * @param {string} x The content of the div.
+ * @param {string | null} id The id of the div.
+ * @param {string | null} html_class The class of the div.
+ * @returns {string} x wrapped in div tags.
+ */
+export function getDiv(x: string, id: string | null, html_class: string | null): string {
+    let r: string = "<div";
+    if (id !== null) {
+        r += " id=\"" + id + "\"";
+    }
+    if (html_class !== null) {
+        r += " class=\"" + html_class + "\"";
+    }
+    return r + ">" + x + "</div>";
+}
+
+/**
+ * Create a input.
+ * @param {string} type The input type (e.g. text, number).
+ * @param {string | null} id The id of the button.
+ * @param {string | null} func The function called on a change.
+ * @param {string | null} value The value of the input.
+ * @returns {string} An input HTML element.
+ */
+export function getInput(type: string, id: string | null, func: string | null,
+    value : string | null): string {
+    let r: string = "<input type=\"" + type + "\"";
+    if (id !== null) {
+        r += " id=\"" + id + "\"";
+    }
+    if (func !== null) {
+        r += " onchange=\"" + func + "\"";
+    }
+    if (value !== null) {
+        r += " value=\"" + value + "\"";
+    }
+    return r + ">";
+}

@@ -154,6 +154,9 @@ export class Molecule {
             return 0;
         }
     }
+    setEnergy(energy: number) {
+        this.properties.set('me:ZPE', new PropertyScalar(energy, 'kcal/mol'));
+    }
     getRotationConstants(): number[] | undefined {
         let rotConsts: PropertyScalar | PropertyArray | undefined = this.properties.get('me:rotConsts');
         if (rotConsts != undefined) {

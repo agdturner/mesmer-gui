@@ -34,3 +34,12 @@ export function toNumberArray(s: string[]): number[] {
     }
     return r;
 }
+
+/**
+ * Can the string be converted to a non NaN number via {@link parseFloat(s)}?
+ * @param {string} s The string.
+ * @returns True if the string can be converted to a non NaN number and false otherwise.
+ */
+export function isNumeric(s: string): boolean {
+    return !isNaN(parseFloat(s));
+}

@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "license": "MIT",
   "scripts": {
-    "start": "parcel html/DisplayXML.html", 
-    "dev": "parcel html/DisplayXML.html",
+    "start": "parcel html/GUI.html",
+    "dev": "parcel html/GUI.html",
     "watch": "parcel watch",
-    "build": "parcel build html/DisplayXML.html"
+    "build": "parcel build html/GUI.html"
   },
   "devDependencies": {
     "@types/node": "^20.11.16",
+    "@types/parcel-bundler": "^1.12.8",
     "assert": "^2.1.0",
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
@@ -17,7 +18,8 @@
     "events": "^3.3.0",
     "https-browserify": "^1.0.0",
     "os-browserify": "^0.3.0",
-    "parcel": "latest",
+    "parcel": "^1.12.4",
+    "parcel-bundler": "^1.12.5",
     "path-browserify": "^1.0.1",
     "process": "^0.11.10",
     "stream-browserify": "^3.0.0",
@@ -34,8 +36,25 @@
   "dependencies": {
     "@cubejs-client/core": "^0.31.0",
     "@types/jsdom": "^21.1.6",
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "fast-xml-parser": "^4.3.4",
     "http": "^0.0.1-security",
     "jsdom": "^24.0.0",
     "libxmljs": "^1.0.11"
-  }
+  },
+  "description": "GUI for visualising and editing MESMER XML input/output files.",
+  "main": "index.js",
+  "keywords": [
+    "MESMER",
+    "GUI",
+    "XML",
+    "HTML",
+    "TypeScript",
+    "Client",
+    "Server",
+    "Node",
+    "Parcel"
+  ],
+  "author": "Andy Turner"
 }

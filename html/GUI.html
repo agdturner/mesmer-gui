@@ -1,11 +1,66 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>My Page</title>
-</head>
-<body>
-    <!-- Your HTML content here -->
+<html lang="en">
 
-    <script src="../dist/esm/client.js"></script>
+<head>
+  <title>Display XML</title>
+  <meta charset="utf-8">
+  <style>
+    table,
+    th,
+    td {
+      border: 1px solid black;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 5px;
+    }
+  </style>
+  <script>var parcelRequire;</script>
+  <script type="module" src="../dist/client/cjm/client.js"></script>
+</head>
+
+<body>
+  <!--
+  <form id="uploadForm">
+    <button onclick="document.getElementById('inputXML').click();">Open</button>
+    <input id="inputXML" type="file" name="name" style="display: none;" />
+  </form>
+  <button id="openFilePicker">Open File Picker</button>
+  <input type="file" id="filePicker" style="display: none;" />
+-->
+
+<div id="controls">
+  <button id="loadButton" type="button" onclick="loadXML()">Load</button>
+  <button id="saveButton" type="button" onclick="saveXML()">Save</button>
+</div>
+
+  <!-- Main heading. -->
+  <h1 id="metitle"></h1>
+
+  <!-- Display table for molecules. -->
+  <div id="molecules_div">
+    <h2>Molecules</h2>
+    <table id="molecules"></table>
+  </div>
+
+  <!-- Display table for reactions. -->
+  <div id="reactions_div">
+    <h2>Reactions</h2>
+    <h3>Table</h3>
+    <table id="reactions"></table>
+    <!-- Display Well Diagram. -->
+    <h3>Diagram</h3>
+    <canvas id="diagram" width="800" height="400" style="border:1px solid grey"></canvas>
+  </div>
+
+  <!-- The XML being parsed. -->
+  <div id="xml_div">
+    <h2>XML</h2>
+    <p id="xml_text"></p>
+  </div>
+
 </body>
+
 </html>
