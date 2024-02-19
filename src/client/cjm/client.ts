@@ -1,17 +1,20 @@
 import { get, rescale } from './util.js';
 
-import { getAttribute, getFirstElement, getFirstChildNode, getNodeValue, getTag, getStartTag, getEndTag } from './xml.js';
+import {
+    getAttribute, getFirstElement, getFirstChildNode, getNodeValue, getTag, getEndTag
+} from './xml.js';
 
 import {
-    Molecule, Atom, Bond, PropertyScalar, PropertyArray
+    Molecule, Atom, Bond, PropertyScalar, PropertyArray, EnergyTransferModel, DeltaEDown, DOSCMethod
 } from './molecule.js';
 
 import {
-    Reaction, ReactionWithTransitionState, TransitionState, Reactant, Product, MCRCMethod, MesmerILT, PreExponential, ActivationEnergy, NInfinity, DefinedSumOfStates, ZhuNakamuraCrossing, Tunneling
+    Reaction, ReactionWithTransitionState, TransitionState, Reactant, Product, MCRCMethod, MesmerILT,
+    PreExponential, ActivationEnergy, NInfinity, DefinedSumOfStates, ZhuNakamuraCrossing, Tunneling
 } from './reaction.js';
 
 import {
-    arrayToString, mapToString, toNumberArray, isNumeric
+    arrayToString, toNumberArray, isNumeric
 } from './functions.js';
 
 import {
@@ -200,7 +203,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         let level: number;
         const padding2: string = pad.repeat(2);
         const padding3: string = pad + padding2;
-        
+
         // Create me.title.
         let title_xml = "\n" + pad + getTag(title, "me:title");
 
@@ -210,15 +213,15 @@ document.addEventListener('DOMContentLoaded', (event) => {
         molecules.forEach(function (molecule, id) {
             moleculeList += molecule.toXML(pad, level);
         });
-        moleculeList = "\n" + padding2 + getTag(moleculeList, "moleculeList");
+        moleculeList = getTag(moleculeList, "moleculeList", undefined, undefined, undefined, padding2, false);
 
         // Create reactionList.
         level = 2;
         let reactionList: string = "\n";
-        molecules.forEach(function (reaction, id) {
+        reactions.forEach(function (reaction, id) {
             reactionList += reaction.toXML(pad, level);
         });
-        reactionList = getTag(reactionList, "reactionList");
+        reactionList = getTag(reactionList, "reactionList", undefined, undefined, undefined, padding2, false);
 
         // Create a new Blob object from the data
         let blob = new Blob([header, mesmerStartTag, title_xml, moleculeList, reactionList, mesmerEndTag],
@@ -562,6 +565,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     bonds.set(id, bond);
                 }
             }
+
             // Read propertyList
             const properties: Map<string, PropertyScalar | PropertyArray> = new Map();
             // The following does not work because sometimes there is a single property not in propertyList!
@@ -617,17 +621,44 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     }
                 }
             }
-            let dOSCMethod: string | null = null;
-            let els: HTMLCollectionOf<Element> | null = xml_molecules[i].getElementsByTagName("me:DOSCMethod");
+            let els: HTMLCollectionOf<Element> | null;
+
+            // Read energyTransferModel
+            let energyTransferModel: EnergyTransferModel | undefined = undefined;
+            els = xml_molecules[i].getElementsByTagName("me:energyTransferModel");
+            if (els != null) {
+                if (els.length > 0) {
+                    if (els.length != 1) {
+                        throw new Error("energyTransferModel length=" + els.length);
+                    }
+                    let type = els[0].getAttribute("xsi:type");
+                    if (type != null) {
+                        let xml_deltaEDown = els[0].getElementsByTagName("me:deltaEDown");
+                        if (xml_deltaEDown != null) {
+                            let units: string = getAttribute(xml_deltaEDown[0], "units");
+                            let value: number = parseFloat(getNodeValue(getFirstChildNode(xml_deltaEDown[0])));
+                            let deltaEDown: DeltaEDown = new DeltaEDown(value, units);
+                            energyTransferModel = new EnergyTransferModel(type, deltaEDown);
+                        }
+                    }
+                }
+            }
+
+            // Read DOSCMethod
+            let dOSCMethod: DOSCMethod | undefined = undefined;
+            els = xml_molecules[i].getElementsByTagName("me:DOSCMethod");
             if (els != null) {
                 let el: Element | null = els[0];
                 if (el != null) {
                     if (el != null) {
-                        dOSCMethod = el.getAttribute("xsi:type");
+                        let type = el.getAttribute("xsi:type");
+                        if (type != null) {
+                            dOSCMethod = new DOSCMethod(type);
+                        }
                     }
                 }
             }
-            let molecule = new Molecule(id, description, active, atoms, bonds, properties, dOSCMethod);
+            let molecule = new Molecule(id, description, active, atoms, bonds, properties, energyTransferModel, dOSCMethod);
             //console.log(molecule.toString());
             molecules.set(id, molecule);
         }

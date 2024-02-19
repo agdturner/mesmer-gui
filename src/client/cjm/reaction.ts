@@ -9,7 +9,7 @@ import {
 } from './molecule.js';
 
 import {
-    getStartTag, getEndTag, getTag
+    getTag
 } from './xml.js';
 
 /**
@@ -417,10 +417,72 @@ export class Reaction {
     }
     
     /**
-     * Convert the product to a string.
-     * @returns String representation of the product.
+     * @param {string} pad The pad (Optional).
+     * @param {number} level The level of padding (Optional).
+     * @returns An XML representation.
      */
-    toXML(): string {
+    toXML(pad?: string, level?: number): string {
+        // Padding
+        let padding0: string = "";
+        let padding1: string = "";
+        let padding2: string = "";
+        let padding3: string = "";
+        if (pad != undefined && level != undefined) {
+            padding0 = pad.repeat(level);
+            padding1 = padding0 + pad;
+            padding2 = padding1 + pad;
+            padding3 = padding2 + pad;
+        }
+        /*
+        // Atoms
+        let atoms_xml: string = "";
+        for (let atom of this.atoms.values()) {
+            atoms_xml += atom.toTag(padding2);
+        }
+        if (this.atoms.size > 1) {
+            if (atoms_xml != "") {
+                atoms_xml = getTag(atoms_xml, "atomArray", undefined, undefined, undefined, padding1, true);
+            }
+        }
+        // Bonds
+        let bonds_xml: string = "";
+        for (let bond of this.bonds.values()) {
+            bonds_xml += bond.toTag(padding2);
+        }
+        if (bonds_xml != "") {
+            bonds_xml = getTag(bonds_xml, "bondArray", undefined, undefined, undefined, padding1, true);
+        }
+        // Properties
+        let properties_xml: string = "";
+        for (let [key, value] of this.properties) {
+            let property_xml: string = "";
+            if (value instanceof PropertyScalar) {
+                property_xml += value.toXML(padding3);
+            } else {
+                property_xml += (value as PropertyArray).toXML(padding3);
+            }
+            properties_xml += getTag(property_xml, "property", undefined, undefined, undefined, padding2, true);
+        }
+        properties_xml = getTag(properties_xml, "propertyList", undefined, undefined, undefined, padding1, true);
+        // EnergyTransferModel
+        let energyTransferModel_xml: string = "";
+        if (this.energyTransferModel) {
+            energyTransferModel_xml = this.energyTransferModel.toXML(pad, padding1);
+        }
+        // DOSCMethod
+        let dOSCMethod_xml: string = "";
+        if (this.dOSCMethod) {
+            dOSCMethod_xml = this.dOSCMethod.toTag(padding1);
+        }
+        // Molecule
+        let attributes: Map<string, string> = new Map();
+        attributes.set("id", this.id);
+        if (this.description != null) {
+            attributes.set("description", this.description);
+        }
+        return getTag(atoms_xml + bonds_xml + properties_xml + energyTransferModel_xml + dOSCMethod_xml,
+            "molecule", attributes, undefined, undefined, padding0, true);
+            */
         return "";
     }
 }
@@ -464,168 +526,5 @@ export class ReactionWithTransitionState extends Reaction {
         return `ReactionWithTransitionState(${super.toString()}, ` +
             `tunneling(${this.tunneling ? this.tunneling.toString() : 'null'}), ` +
             `transitionState(${this.transitionState.toString()}))`;
-    }
-}
-
-/**
- * A class for representing a Pressure and Temperature pair.
- * @param {string} units The units of the pair.
- * @param {number} P The pressure.
- * @param {number} T The temperature.
- */
-export class PTpair {
-    units: string;
-    P: number;
-    T: number;
-    constructor(units: string, P: number, T: number) {
-        this.units = units;
-        this.P = P;
-        this.T = T;
-    }
-    toString() {
-        return `PTpair(` +
-            `units(${this.units}), ` +
-            `P(${this.P.toString()}), ` +
-            `T(${this.T.toString()}))`;
-    }
-}
-
-/**
- * A class for representing the experiment conditions.
- * @param {string} bathGas The bath gas.
- * @param {PTpair[]} pTs The Pressure and Temperature pairs.
- */
-export class Conditions {
-    bathGas: string;
-    pTs: PTpair[];
-    constructor(bathGas: string, pTs: PTpair[]) {
-        this.bathGas = bathGas;
-        this.pTs = pTs;
-    }
-    toString() {
-        return `Conditions(` +
-            `bathGas(${this.bathGas}), ` +
-            `pTs(${this.pTs.toString()}))`;
-    }
-}
-
-/**
- * A class for measures of grain size.
- * @param {number} value The value.
- * @param {string} units The units.
- */
-export class GrainSize extends Measure {
-    constructor(value: number, units: string) {
-        super(value, units);
-    }
-    toString() {
-        return `GrainSize(${super.toString()})`;
-    }
-}
-
-/**
- * A class for model parameters.
- * @param {GrainSize} grainSize The grain size.
- * @param {number} energyAboveTheTopHill The energy above the top hill.
- */
-export class ModelParameters {
-    grainSize: GrainSize;
-    energyAboveTheTopHill: number;
-    constructor(grainSize: GrainSize, energyAboveTheTopHill: number) {
-        this.grainSize = grainSize;
-        this.energyAboveTheTopHill = energyAboveTheTopHill;
-    }
-    toString() {
-        return `ModelParameters(` +
-            `grainSize(${this.grainSize.toString()}), ` +
-            `energyAboveTheTopHill(${this.energyAboveTheTopHill.toString()}))`;
-    }
-}
-
-/**
- * A class for the diagram energy offset.
- * @param {string} ref The reference.
- * @param {number} value The value.
- */
-export class DiagramEnergyOffset {
-    ref: string;
-    value: number;
-    constructor(ref: string, value: number) {
-        this.ref = ref;
-        this.value = value;
-    }
-    toString() {
-        return `DiagramEnergyOffset(` +
-            `ref(${this.ref}), ` +
-            `value(${this.value.toString()}))`;
-    }
-}
-
-/**
- * A class for the control.
- * @param {boolean} testDOS The test density of states flag.
- * @param {boolean} printSpeciesProfile The print species profile flag.
- * @param {boolean} testMicroRates The test micro rates flag.
- * @param {boolean} testRateConstant The test rate constant flag.
- * @param {boolean} printGrainDOS The print grain density of states flag.
- * @param {boolean} printCellDOS The print cell density of states flag.
- * @param {boolean} printReactionOperatorColumnSums The print reaction operator column sums flag.
- * @param {boolean} printTunnellingCoefficients The print tunnelling coefficients flag.
- * @param {boolean} printGrainkfE The print grain kfE flag.
- * @param {boolean} printGrainBoltzmann The print grain Boltzmann flag.
- * @param {boolean} printGrainkbE The print grain kbE flag.
- * @param {number} eigenvalues The number of eigenvalues.
- * @param {boolean} hideInactive The hide inactive flag.
- * @param {DiagramEnergyOffset} diagramEnergyOffset The diagram energy offset.
- */
-export class Control {
-    testDOS: boolean;
-    printSpeciesProfile: boolean;
-    testMicroRates: boolean;
-    testRateConstant: boolean;
-    printGrainDOS: boolean;
-    printCellDOS: boolean;
-    printReactionOperatorColumnSums: boolean;
-    printTunnellingCoefficients: boolean;
-    printGrainkfE: boolean;
-    printGrainBoltzmann: boolean;
-    printGrainkbE: boolean;
-    eigenvalues: number;
-    hideInactive: boolean;
-    diagramEnergyOffset: DiagramEnergyOffset;
-    constructor(testDOS: boolean, printSpeciesProfile: boolean, testMicroRates: boolean, testRateConstant:
-        boolean, printGrainDOS: boolean, printCellDOS: boolean, printReactionOperatorColumnSums:
-            boolean, printTunnellingCoefficients: boolean, printGrainkfE: boolean, printGrainBoltzmann: boolean,
-        printGrainkbE: boolean, eigenvalues: number, hideInactive: boolean, diagramEnergyOffset: DiagramEnergyOffset) {
-        this.testDOS = testDOS;
-        this.printSpeciesProfile = printSpeciesProfile;
-        this.testMicroRates = testMicroRates;
-        this.testRateConstant = testRateConstant;
-        this.printGrainDOS = printGrainDOS;
-        this.printCellDOS = printCellDOS;
-        this.printReactionOperatorColumnSums = printReactionOperatorColumnSums;
-        this.printTunnellingCoefficients = printTunnellingCoefficients;
-        this.printGrainkfE = printGrainkfE;
-        this.printGrainBoltzmann = printGrainBoltzmann;
-        this.printGrainkbE = printGrainkbE;
-        this.eigenvalues = eigenvalues;
-        this.hideInactive = hideInactive;
-        this.diagramEnergyOffset = diagramEnergyOffset;
-    }
-    toString() {
-        return `Control(` +
-            `testDOS(${this.testDOS.toString()}), ` +
-            `printSpeciesProfile(${this.printSpeciesProfile.toString()}), ` +
-            `testMicroRates(${this.testMicroRates.toString()}), ` +
-            `testRateConstant(${this.testRateConstant.toString()}), ` +
-            `printGrainDOS(${this.printGrainDOS.toString()}), ` +
-            `printCellDOS(${this.printCellDOS.toString()}), ` +
-            `printReactionOperatorColumnSums(${this.printReactionOperatorColumnSums.toString()}), ` +
-            `printTunnellingCoefficients(${this.printTunnellingCoefficients.toString()}), ` +
-            `printGrainkfE(${this.printGrainkfE.toString()}), ` +
-            `printGrainBoltzmann(${this.printGrainBoltzmann.toString()}), ` +
-            `printGrainkbE(${this.printGrainkbE.toString()}), ` +
-            `eigenvalues(${this.eigenvalues.toString()}), ` +
-            `hideInactive(${this.hideInactive.toString()}))`;
     }
 }

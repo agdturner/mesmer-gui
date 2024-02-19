@@ -1,5 +1,3 @@
-import e from "express";
-
 /**
  * Get the attribute of an xml element.
  * @param xml The xml element to search in.
@@ -90,12 +88,15 @@ export function getStartTag(tagName: string, attributes?: Map<string, any>,
  * Create and return an XML end tag.
  * @param tagName The tag name.
  * @param padding The padding (optional).
+ * @param padValue Whether to pad the value (optional).
  * @returns The XML end tag.
  */
-export function getEndTag(tagName: string, padding?: string): string {
+export function getEndTag(tagName: string, padding?: string, padValue?: boolean): string {
     let s: string = "";
-    if (padding != undefined) {
-        s += "\n" + padding;
+    if (padValue) {
+        if (padding != undefined) {
+            s += "\n" + padding;
+        }
     }
     return s + '</' + tagName + '>';
 }
@@ -109,19 +110,13 @@ export function getEndTag(tagName: string, padding?: string): string {
  * @param {Map<string, any>} attributes The attributes (optional).
  * @param {string} attributeName The name of the attribute (optional).
  * @param {any} attributeValue The value of the attribute (optional).
- * @param {string} pad The pad (optional).
+ * @param {string} padding The padding (optional).
  * @param {boolean} padValue Whether to pad the value (optional).
  * @returns The XML tag with content.
  */
 export function getTag(content: string, tagName: string, attributes?: Map<string, any>,
-    attributeName?: string, attributeValue?: any, padding?: string, pad?: string, padValue?: boolean): string {
+    attributeName?: string, attributeValue?: any, padding?: string, padValue?: boolean): string {
     let startTag: string = getStartTag(tagName, attributes, attributeName, attributeValue, padding);
-    let endTag: string = "";
-    if (padValue) {
-        content = "\n" + padding + pad + content;
-        endTag = getEndTag(tagName, padding);
-    } else {
-        endTag = getEndTag(tagName);
-    }
+    let endTag: string = getEndTag(tagName, padding, padValue);
     return startTag + content + endTag;
 }

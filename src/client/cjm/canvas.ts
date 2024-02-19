@@ -33,7 +33,6 @@ function getTextStartX(ctx: CanvasRenderingContext2D, text: string, font: string
     return x_centre - (tw / 2);
 }
 
-
 /**
  * Draw a line (segment) on the canvas.
  * @param {CanvasRenderingContext2D} ctx The context to use.

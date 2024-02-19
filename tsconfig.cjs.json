@@ -9,7 +9,9 @@
     "src/client/cjm/util.ts",
     "src/client/cjm/xml.ts",
     "src/client/cjm/functions.ts",
-    "src/client/cjm/classes.ts",
+    "src/client/cjm/molecule.ts",
+    "src/client/cjm/reaction.ts",
+    "src/client/cjm/experiment.ts",
     "src/client/cjm/html.ts",
     "src/client/cjm/canvas.ts",
     "src/client/cjm/client.ts"
