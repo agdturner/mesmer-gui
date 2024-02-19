@@ -1,10 +1,14 @@
 import { get, rescale } from './util.js';
 
-import { getAttribute, getFirstElement, getFirstChildNode, getNodeValue } from './xml.js';
+import { getAttribute, getFirstElement, getFirstChildNode, getNodeValue, getTag, getStartTag, getEndTag } from './xml.js';
 
 import {
-    ActivationEnergy, Atom, Bond, DefinedSumOfStates, MCRCMethod, MesmerILT, Molecule, NInfinity, PreExponential, Product, PropertyArray, PropertyScalar, Reactant, Reaction, ReactionWithTransitionState, TransitionState, Tunneling, ZhuNakamuraCrossing
-} from './classes.js';
+    Molecule, Atom, Bond, PropertyScalar, PropertyArray
+} from './molecule.js';
+
+import {
+    Reaction, ReactionWithTransitionState, TransitionState, Reactant, Product, MCRCMethod, MesmerILT, PreExponential, ActivationEnergy, NInfinity, DefinedSumOfStates, ZhuNakamuraCrossing, Tunneling
+} from './reaction.js';
 
 import {
     arrayToString, mapToString, toNumberArray, isNumeric
@@ -35,9 +39,19 @@ declare global {
 }
 
 /**
-     * A map for all the molecule input elements with the id as the key.
-     */
-let moleculeInputElements: Map<string, HTMLInputElement> = new Map();
+ * For storing me.title.
+ */
+let title: string;
+
+/**
+ * For storing the XML root start tag.
+ */
+let mesmerStartTag: string;
+
+/**
+ * For storing the XML root end tag.
+ */
+let mesmerEndTag: string;
 
 /**
  * A map of molecules with Molecule.id as key and Molecules as values.
@@ -60,9 +74,11 @@ let minMoleculeEnergy: number = Infinity;
 let reactions: Map<string, Reaction> = new Map([]);
 
 /**
- * For storing the header of the XML file.
+ * The header of the XML file.
  */
-let header: string;
+const header: string = `<?xml version="1.0" encoding="utf-8" ?>
+<?xml-stylesheet type='text/xsl' href='../../mesmer2.xsl' media='other'?>
+<?xml-stylesheet type='text/xsl' href='../../mesmer1.xsl' media='screen'?>`;
 
 /**
  * The filename of the mesmer input file loaded.
@@ -161,9 +177,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
                                     .catch(error => {
                                         console.error('There was a problem with the fetch operation:', error);
                                     });
-
-
-
                             }
                         }
                     };
@@ -183,8 +196,33 @@ document.addEventListener('DOMContentLoaded', (event) => {
     window.saveXML = function () {
         console.log("saveXML");
 
+        const pad: string = "  ";
+        let level: number;
+        const padding2: string = pad.repeat(2);
+        const padding3: string = pad + padding2;
+        
+        // Create me.title.
+        let title_xml = "\n" + pad + getTag(title, "me:title");
+
+        // Create moleculeList.
+        level = 3;
+        let moleculeList: string = "";
+        molecules.forEach(function (molecule, id) {
+            moleculeList += molecule.toXML(pad, level);
+        });
+        moleculeList = "\n" + padding2 + getTag(moleculeList, "moleculeList");
+
+        // Create reactionList.
+        level = 2;
+        let reactionList: string = "\n";
+        molecules.forEach(function (reaction, id) {
+            reactionList += reaction.toXML(pad, level);
+        });
+        reactionList = getTag(reactionList, "reactionList");
+
         // Create a new Blob object from the data
-        let blob = new Blob([header], { type: "text/plain" });
+        let blob = new Blob([header, mesmerStartTag, title_xml, moleculeList, reactionList, mesmerEndTag],
+            { type: "text/plain" });
 
         // Create a new object URL for the blob
         let url = URL.createObjectURL(blob);
@@ -291,57 +329,55 @@ document.addEventListener('DOMContentLoaded', (event) => {
      * @param {XMLDocument} xml 
      */
     function parse(xml: XMLDocument) {
+
         /**
-         * Log to console and display me.title.
-         * This goes through the entire XML file and writes out log messages to the consol.
+         * Set mesmer_xml start tag.
          */
-        let elements = xml.getElementsByTagName('*');
-        console.log("Number of elements=" + elements.length);
-        let getHeader: boolean = true;
-        header = "";
-        for (let i = 0; i < elements.length; i++) {
-            let nn = elements[i].nodeName;
-            //let tn=elements[i].tagName;
-            //let nn=elements[i].getNodeName();
-            if (nn != null) {
-                if (getHeader) {
-                    console.log("elements[" + i + "].nodeName=" + nn);
-                    //console.log("elements[" + i + "].tagName=" + tn);
-                    header += nn;
+        mesmerStartTag = "\n";
+        let documentElement: HTMLElement = xml.documentElement;
+        if (documentElement == null) {
+            throw new Error("Document element not found");
+        } else {
+            let tagName: string = documentElement.tagName;
+            mesmerStartTag += "<" + tagName;
+            console.log(tagName);
+            mesmerEndTag = getEndTag(tagName);
+            let first: boolean = true;
+            let pad = " ".repeat(tagName.length + 2);
+            let names: string[] = documentElement.getAttributeNames();
+            names.forEach(function (name) {
+                let attribute = documentElement.getAttribute(name);
+                let na = `${name}="${attribute}"`;
+                if (first) {
+                    first = false;
+                    mesmerStartTag += " " + na;
+                } else {
+                    mesmerStartTag += "\n" + pad + na;
                 }
-                let cns = elements[i].childNodes;
-                if (cns != null) {
-                    cns.forEach(function (cn) {
-                        if (cn != null) {
-                            let nv = cn.nodeValue;
-                            if (nv != null) {
-                                nv = nv.trim();
-                                if (getHeader) {
-                                    console.log("nv=" + nv);
-                                    console.log("nn=" + cn.nodeName);
-                                    header += nn + nv;
-                                }
-                                if (nv.length > 0) {
-                                    if (nn === "me:title") {
-                                        const element = document.getElementById("metitle");
-                                        if (element !== null) {
-                                            element.innerHTML = nv;
-                                        }
-                                        getHeader = false;
-                                    }
-                                    //console.log("elements[" + i + "].childNodes[0].nodeValue=" + nv);
-                                }
-                            }
-                        }
-                    });
+            });
+            mesmerStartTag += ">";
+            //console.log(mesmerStartTag);
+        }
+
+        /**
+         *  Set h1.
+         */
+        let me_title: HTMLCollectionOf<Element> = xml.getElementsByTagName('me:title');
+        if (me_title == null) {
+            throw new Error('me:title not found');
+        } else {
+            if (me_title.length != 1) {
+                throw new Error('Multiple me:title elements found');
+            } else {
+                title = me_title[0].childNodes[0].nodeValue as string;
+                title = title.trim();
+                console.log("Title=" + title);
+                const element = document.getElementById("h1");
+                if (element != null) {
+                    element.innerHTML = title;
                 }
             }
         }
-        console.log("header=" + header);
-        // The following does not work because of the ":" in the tag.
-        //var title=xmlDoc.getElementsByTagName('me:title').nodeValue;
-        //console.log("Title=" + title);
-        //document.getElementById("metitle").innerHTML=title;
 
         /**
          * Generate molecules table.
@@ -409,7 +445,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
                         console.log("Type of inputValue: " + typeof inputValue);
                     }
                 });
-                moleculeInputElements.set(energyKey, inputElement);
             }
         });
 
@@ -519,7 +554,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 let xml_bonds = xml_bondArray.getElementsByTagName("bond");
                 for (let j = 0; j < xml_bonds.length; j++) {
                     let xml_bond = xml_bonds[j];
-                    let atomRefs2: string[] = getAttribute(xml_bond, "atomRefs2").trim().split(/\s+/);
+                    let id: string = getAttribute(xml_bond, "atomRefs2");
+                    let atomRefs2: string[] = id.trim().split(/\s+/);
                     let bond = new Bond(get(atoms, atomRefs2[0]), get(atoms, atomRefs2[1]),
                         getAttribute(xml_bond, "order"));
                     //console.log(bond.toString());

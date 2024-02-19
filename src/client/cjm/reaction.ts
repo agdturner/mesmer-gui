@@ -1,185 +1,16 @@
-import {
-    get
-} from './util.js';
-
+import { attribute } from 'libxmljs/dist/lib/bindings/functions.js';
 import {
     arrayToString,
     mapToString
 } from './functions.js';
 
-/**
- * A class for representing an atom.
- * @param {string} id The id of the atom.
- * @param {string} elementType The element type of the atom.
- */
-export class Atom {
-    id: string;
-    elementType: string;
-    constructor(id: string, elementType: string) {
-        this.id = id;
-        this.elementType = elementType;
-    }
-    toString() {
-        return `Atom(id(${this.id}), elementType(${this.elementType}))`;
-    }
-}
+import {
+    Molecule, Measure
+} from './molecule.js';
 
-/**
- * A class for representing an atomic bond - a bond beteen two atoms.
- * @param {Atom} atomA One atom.
- * @param {Atom} atomB Another atom.
- * @param {string} order The order of the bond.
- */
-export class Bond {
-    atomA: Atom;
-    atomB: Atom;
-    order: string;
-    constructor(atomA: Atom, atomB: Atom, order: string) {
-        this.atomA = atomA;
-        this.atomB = atomB;
-        this.order = order;
-    }
-    toString() {
-        return `Bond(` +
-            `atomA(${this.atomA.toString()}), ` +
-            `atomB(${this.atomA.toString()}), ` +
-            `order(${this.order}))`;
-    }
-}
-
-/**
- * A class for representing a measure.
- * @param {number} value The value of the measure.
- * @param {string | null} units The units of the measure.
- */
-class Measure {
-    value: number;
-    units: string | null;
-    constructor(value: number, units: string | null) {
-        this.value = value;
-        this.units = units;
-    }
-    toString() {
-        return `Measure(value(${this.value.toString()}), ` +
-        `units(${this.units ? this.units : 'null'}))`;
-    }
-}
-
-/**
- * A class for representing a property scalar.
- * @param {number} value The value.
- * @param {string} units The units.
- */
-export class PropertyScalar extends Measure {
-    constructor(value: number, units: string) {
-        super(value, units);
-    }
-    toString() {
-        return `Scalar(${super.toString()})`;
-    }
-}
-
-/**
- * A class for representing a property array.
- * @param {number[]} values The values.
- * @param {string} unit The unit.
- */
-export class PropertyArray {
-    values: number[];
-    units: string;
-    constructor(values: number[], units: string) {
-        this.values = values;
-        this.units = units;
-    }
-    toString() {
-        return `PropertyArray(` +
-            `values(${arrayToString(this.values)}), ` +
-            `unit(${this.units}))`;
-    }
-    toPropertyScalarArray() {
-        let r: PropertyScalar[] = [];
-        for (let i = 0; i < this.values.length; i++) {
-            r.push(new PropertyScalar(this.values[i], this.units));
-        }
-        return r;
-    }
-}
-
-/**
- * A class for representing a molecule.
- * @param {string} id The id of the molecule.
- * @param {string} description The description of the molecule.
- * @param {boolean} active Indicates if the molecule is active.
- * @param {Map<string, Atom>} atoms A Map of atoms with keys as string atom ids and values as Atoms.
- * @param {Map<string, Bond>} bonds A Map of bonds with keys as string atom ids and values as Bonds.
- * @param {Map<string, PropertyScalar | PropertyArray>} properties A map of properties.
- * @param {string | null} dOSCMethod The principal external rotational states method for calculating density of states.
- */
-export class Molecule {
-    id: string;
-    description: string | null;
-    active: boolean;
-    atoms: Map<string, Atom>;
-    bonds: Map<string, Bond>;
-    properties: Map<string, PropertyScalar | PropertyArray>;
-    dOSCMethod: string | null;
-    constructor(id: string, description: string | null, active: boolean,
-        atoms: Map<string, Atom>,
-        bonds: Map<string, Bond>,
-        properties: Map<string, PropertyScalar | PropertyArray>,
-        dOSCMethod: string | null) {
-        this.id = id;
-        this.description = description;
-        this.active = active;
-        this.atoms = atoms;
-        this.bonds = bonds;
-        this.properties = properties;
-        this.dOSCMethod = dOSCMethod;
-    }
-    toString() {
-        return `Molecule(` +
-            `id(${this.id}), ` +
-            `description(${this.description}), ` +
-            `active(${this.active.toString()}), ` +
-            `atoms(${mapToString(this.atoms)}), ` +
-            `bonds(${mapToString(this.bonds)}), ` +
-            `properties(${mapToString(this.properties)}), ` +
-            `dOSCMethod(${this.dOSCMethod ? this.dOSCMethod : 'null'}))`;
-    }
-    getEnergy(): number {
-        let zpe = this.properties.get('me:ZPE');
-        if (zpe instanceof PropertyScalar) {
-            return zpe.value;
-        } else {
-            return 0;
-        }
-    }
-    setEnergy(energy: number) {
-        this.properties.set('me:ZPE', new PropertyScalar(energy, 'kcal/mol'));
-    }
-    getRotationConstants(): number[] | undefined {
-        let rotConsts: PropertyScalar | PropertyArray | undefined = this.properties.get('me:rotConsts');
-        if (rotConsts != undefined) {
-            if (rotConsts instanceof PropertyScalar) {
-                return [rotConsts.value];
-            } else {
-                return rotConsts.values;
-            }
-        }
-        return rotConsts;
-    }
-    getVibrationFrequencies(): number[] | undefined {
-        let vibFreqs: PropertyScalar | PropertyArray | undefined = this.properties.get('me:vibFreqs');
-        if (vibFreqs != undefined) {
-            if (vibFreqs instanceof PropertyScalar) {
-                return [vibFreqs.value];
-            } else {
-                return vibFreqs.values;
-            }
-        }
-        return vibFreqs;
-    }
-}
+import {
+    getStartTag, getEndTag, getTag
+} from './xml.js';
 
 /**
  * A class for representing a molecule and a role.
@@ -221,7 +52,12 @@ export class Product extends MR {
     constructor(molecule: Molecule, role: string) {
         super(molecule, role);
     }
-    toString() {
+
+    /**
+     * Convert the product to a string.
+     * @returns String representation of the product.
+     */
+    override toString(): string {
         return `Product(${super.toString()})`;
     }
 }
@@ -235,9 +71,19 @@ export class TransitionState extends MR {
     constructor(molecule: Molecule, role: string) {
         super(molecule, role);
     }
-    toString() {
+
+    /**
+     * Convert the transition state to a string.
+     * @returns {string} The string representation of the transition state.
+     */
+    override toString(): string {
         return `TransitionState(${super.toString()})`;
     }
+    
+    /**
+     * A convenience method to get the name of the transition state.
+     * @returns {string} The name of the transition state.
+     */
     getName(): string {
         return this.molecule.id;
     }
@@ -252,7 +98,12 @@ export class MCRCType {
     constructor(type: string) {
         this.type = type;
     }
-    toString() {
+
+    /**
+     * Convert the MCRCType to a string.
+     * @returns {string} The string representation of the MCRCType.
+     */
+    toString(): string {
         return `MCRCType(` +
             `type(${this.type}))`;
     }
@@ -514,7 +365,12 @@ export class Reaction {
         this.products = products;
         this.mCRCMethod = mCRCMethod;
     }
-    toString() {
+    
+    /**
+     * Convert the product to a string.
+     * @returns String representation of the product.
+     */
+    toString(): string {
         return `Reaction(` +
             `id(${this.id}), ` +
             `active(${this.active.toString()}), ` +
@@ -522,21 +378,50 @@ export class Reaction {
             `products(${mapToString(this.products)}), ` +
             `mCRCMethod(${this.mCRCMethod ? this.mCRCMethod.toString() : 'null'}))`;
     }
+    
     getReactantsLabel(): string {
         return Array.from(this.reactants.values()).map(reactant => reactant.molecule.id).join(' + ');
     }
+
+    /**
+     * Get the combined energy of the reactants.
+     * @returns The combined energy of the reactants.
+     */
     getReactantsEnergy(): number {
         return Array.from(this.reactants.values()).map(reactant => reactant.molecule.getEnergy()).reduce((a, b) => a + b, 0);
     }
+
+    /**
+     * Returns the label for the products.
+     * @returns The label for the products.
+     */
     getProductsLabel(): string {
         return Array.from(this.products.values()).map(product => product.molecule.id).join(' + ');
     }
+
+    /**
+     * Returns the total energy of all products.
+     * @returns The total energy of all products.
+     */
     getProductsEnergy(): number {
         return Array.from(this.products.values()).map(product => product.molecule.getEnergy()).reduce((a, b) => a + b, 0);
     }
+
+    /**
+     * Get the label of the reaction.
+     * @returns The label of the reaction.
+     */
     getLabel(): string {
         let label: string = this.getReactantsLabel() + ' -> ' + this.getProductsLabel();
         return label;
+    }
+    
+    /**
+     * Convert the product to a string.
+     * @returns String representation of the product.
+     */
+    toXML(): string {
+        return "";
     }
 }
 
