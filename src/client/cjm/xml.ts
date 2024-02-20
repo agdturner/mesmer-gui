@@ -120,3 +120,21 @@ export function getTag(content: string, tagName: string, attributes?: Map<string
     let endTag: string = getEndTag(tagName, padding, padValue);
     return startTag + content + endTag;
 }
+
+/**
+ * Get the attributes of an element.
+ * @param {Element} element The element to get the attributes of.
+ * @returns {Map<string, string>} The attributes of the element.
+ */
+export function getAttributes(element: Element): Map<string, string> {    
+    let attributeNames: string[] = element.getAttributeNames();
+    let attributes: Map<string, string> = new Map();
+    attributeNames.forEach(function (attributeName) {
+        let attributeValue: string | null = element.getAttribute(attributeName);
+        if (attributeValue != null) {
+            attributes.set(attributeName, attributeValue);
+            //console.log("attributeName=" + attributeName + " attributeValue=" + attributeValue);
+        }
+    });
+    return attributes;
+}
