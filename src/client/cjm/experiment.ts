@@ -1,3 +1,4 @@
+import { Attributes } from "./classes";
 import { Measure } from "./molecule";
 
 
@@ -29,10 +30,11 @@ export class PTpair {
  * @param {string} bathGas The bath gas.
  * @param {PTpair[]} pTs The Pressure and Temperature pairs.
  */
-export class Conditions {
+export class Conditions extends Attributes {
     bathGas: string;
     pTs: PTpair[];
-    constructor(bathGas: string, pTs: PTpair[]) {
+    constructor(attributes: Map<string, string>, bathGas: string, pTs: PTpair[]) {
+        super(attributes);
         this.bathGas = bathGas;
         this.pTs = pTs;
     }

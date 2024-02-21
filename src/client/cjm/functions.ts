@@ -13,13 +13,17 @@ export function mapToString(map: Map<any, any>): string {
 
 /**
  * For converting an array to a string.
- * @param array The array to convert to a string.
+ * @param {any[]} array The array to convert to a string.
+ * @param {string} delimiter The (optional) delimiter.
  */
-export function arrayToString(array: any[]): string {
+export function arrayToString(array: any[], delimiter: string): string {
     if (array == null) {
         return "";
     }
-    return array.map((value) => value == null ? "null" : value.toString()).join(', ');
+    if (delimiter == null) {
+        delimiter = ', ';
+    }
+    return array.map((value) => value == null ? "null" : value.toString()).join(delimiter);
 }
 
 /**

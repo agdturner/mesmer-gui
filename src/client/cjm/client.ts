@@ -5,11 +5,11 @@ import {
 } from './xml.js';
 
 import {
-    Molecule, Atom, Bond, EnergyTransferModel, DeltaEDown, DOSCMethod
+    Molecule, Atom, Bond, EnergyTransferModel, DeltaEDown, DOSCMethod, Property
 } from './molecule.js';
 
 import {
-    Reaction, ReactionWithTransitionState, TransitionState, Reactant, Product, MCRCMethod, MesmerILT,
+    Reaction, TransitionState, Reactant, Product, MCRCMethod, MesmerILT,
     PreExponential, ActivationEnergy, NInfinity, DefinedSumOfStates, ZhuNakamuraCrossing, Tunneling
 } from './reaction.js';
 
@@ -203,18 +203,17 @@ document.addEventListener('DOMContentLoaded', (event) => {
         const pad: string = "  ";
         let level: number;
         const padding2: string = pad.repeat(2);
-        const padding3: string = pad + padding2;
 
         // Create me.title.
         let title_xml = "\n" + pad + getTag(title, "me:title");
 
         // Create moleculeList.
-        level = 3;
+        level = 2;
         let moleculeList: string = "";
         molecules.forEach(function (molecule, id) {
             moleculeList += molecule.toXML(pad, level);
         });
-        moleculeList = getTag(moleculeList, "moleculeList", undefined, undefined, undefined, padding2, false);
+        moleculeList = getTag(moleculeList, "moleculeList", undefined, undefined, undefined, pad, true);
 
         // Create reactionList.
         level = 2;
@@ -222,7 +221,15 @@ document.addEventListener('DOMContentLoaded', (event) => {
         reactions.forEach(function (reaction, id) {
             reactionList += reaction.toXML(pad, level);
         });
-        reactionList = getTag(reactionList, "reactionList", undefined, undefined, undefined, padding2, false);
+        reactionList = getTag(reactionList, "reactionList", undefined, undefined, undefined, pad, true);
+
+        // Create me.Conditions
+        //let conditions: string = "\n";
+
+        // Create modelParameters
+
+        // create me.control
+
 
         // Create a new Blob object from the data
         let blob = new Blob([header, mesmerStartTag, title_xml, moleculeList, reactionList, mesmerEndTag],
@@ -408,12 +415,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
             let rotationConstants: string = "";
             let rotConsts: number[] | undefined = molecule.getRotationConstants();
             if (rotConsts != undefined) {
-                rotationConstants = arrayToString(rotConsts);
+                rotationConstants = arrayToString(rotConsts, " ");
             }
             let vibrationFrequencies: string = "";
             let vibFreqs: number[] | undefined = molecule.getVibrationFrequencies();
             if (vibFreqs != undefined) {
-                vibrationFrequencies = arrayToString(vibFreqs);
+                vibrationFrequencies = arrayToString(vibFreqs, " ");
             }
             moleculesTable += getTR(getTD(id)
                 + getTD(getInput("number", id + "_energy", "setEnergy(this)", energy))
@@ -462,36 +469,38 @@ document.addEventListener('DOMContentLoaded', (event) => {
         reactions.forEach(function (reaction, id) {
             //console.log("id=" + id);
             //console.log("reaction=" + reaction);
-            let reactants: string = arrayToString(Array.from(reaction.reactants.keys()));
-            let products: string = arrayToString(Array.from(reaction.products.keys()));
+            let reactants: string = arrayToString(Array.from(reaction.reactants.keys()), " ");
+            let products: string = arrayToString(Array.from(reaction.products.keys()), " ");
             let transitionState: string = "";
             let preExponential: string = "";
             let activationEnergy: string = "";
             let tInfinity: string = "";
             let nInfinity: string = "";
-            if (reaction instanceof ReactionWithTransitionState) {
+            if (reaction.transitionState) {
                 transitionState = reaction.transitionState.getName();
             }
-            let mCRCMethod: MCRCMethod | null = reaction.mCRCMethod;
-            if (mCRCMethod != null) {
-                if (mCRCMethod instanceof MesmerILT) {
-                    if (mCRCMethod.preExponential != null) {
-                        preExponential = mCRCMethod.preExponential.value.toString() + " "
-                            + mCRCMethod.preExponential.units;
+            if (reaction.mCRCMethod != undefined) {
+                if (reaction.mCRCMethod instanceof MesmerILT) {
+                    if (reaction.mCRCMethod.preExponential != null) {
+                        preExponential = reaction.mCRCMethod.preExponential.value.toString() + " "
+                            + reaction.mCRCMethod.preExponential.attributes.units;
                     }
-                    if (mCRCMethod.activationEnergy != null) {
-                        activationEnergy = mCRCMethod.activationEnergy.value.toString() + " "
-                            + mCRCMethod.activationEnergy.units;
+                    if (reaction.mCRCMethod.activationEnergy != null) {
+                        activationEnergy = reaction.mCRCMethod.activationEnergy.value.toString() + " "
+                            + reaction.mCRCMethod.activationEnergy.units;
                     }
-                    if (mCRCMethod.tInfinity != null) {
-                        tInfinity = mCRCMethod.tInfinity.toString();
+                    if (reaction.mCRCMethod.tInfinity != null) {
+                        tInfinity = reaction.mCRCMethod.tInfinity.toString();
                     }
-                    if (mCRCMethod.nInfinity != null) {
-                        nInfinity = mCRCMethod.nInfinity.value.toString();
+                    if (reaction.mCRCMethod.nInfinity != null) {
+                        nInfinity = reaction.mCRCMethod.nInfinity.value.toString();
                     }
-                } else if (mCRCMethod instanceof ZhuNakamuraCrossing) {
-                } else if (mCRCMethod instanceof DefinedSumOfStates) {
-                } else {
+                } else if (reaction.mCRCMethod instanceof ZhuNakamuraCrossing) {
+                    throw new Error("ZhuNakamuraCrossing not implemented");
+                } else if (reaction.mCRCMethod instanceof DefinedSumOfStates) {
+                    throw new Error("DefinedSumOfStates not implemented");
+                } else if (reaction.mCRCMethod instanceof Tunneling) {
+                    throw new Error("Unexpected mCRCMethod: " + reaction.mCRCMethod);
                 }
             }
             reactionsTable += getTR(getTD(id) + getTD(reactants) + getTD(products) + getTD(transitionState)
@@ -514,6 +523,21 @@ document.addEventListener('DOMContentLoaded', (event) => {
         if (canvas !== null) {
             drawReactionDiagram(canvas, molecules, reactions, dark, font, lw, lwc);
         }
+
+        /**
+         * Generate reactions table.
+         */
+        //initConditions(xml);
+
+        /**
+         * Generate reactions table.
+         */
+        //initModelParameters(xml);
+
+        /**
+         * Generate reactions table.
+         */
+        //initControl(xml);
     }
 
     /**
@@ -566,9 +590,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
             // Sometimes there is an individual atom not in an atomArray.
             //let xml_atomArray = xml_molecules[i].getElementsByTagName("atomArray")[0];
             //if (xml_atomArray != null) {
-                moleculeTagNames.delete("atom");
-                moleculeTagNames.delete("atomArray");
-            
+            moleculeTagNames.delete("atom");
+            moleculeTagNames.delete("atomArray");
+
             let xml_atoms: HTMLCollectionOf<Element> = xml_molecules[i].getElementsByTagName("atom");
             for (let j = 0; j < xml_atoms.length; j++) {
                 let attribs: Map<string, string> = getAttributes(xml_atoms[j]);
@@ -595,12 +619,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 }
             }
             // Read propertyList.
-            const properties: Map<string, NumberWithAttributes | NumberArrayWithAttributes> = new Map();
+            const properties: Map<string, Property> = new Map();
             // Sometimes there is a single property not in propertyList!
             //let xml_propertyList = xml_molecules[i].getElementsByTagName("propertyList")[0];
             //if (xml_propertyList != null) {
             //    let xml_properties = xml_propertyList.getElementsByTagName("property");
-            
+
             moleculeTagNames.delete("property");
             moleculeTagNames.delete("propertyList");
             let xml_properties: HTMLCollectionOf<Element> = xml_molecules[i].getElementsByTagName("property");
@@ -627,15 +651,17 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 if (nodeName == "scalar") {
                     moleculeTagNames.delete("scalar");
                     let value: number = parseFloat(textContent);
-                    properties.set(dictRef, new NumberWithAttributes(nodeAttributes, value));
+                    properties.set(dictRef, new Property(attribs,
+                        new NumberWithAttributes(nodeAttributes, value)));
                     if (dictRef === "me:ZPE") {
                         minMoleculeEnergy = Math.min(minMoleculeEnergy, value);
                         maxMoleculeEnergy = Math.max(maxMoleculeEnergy, value);
                     }
                 } else if (nodeName == "array") {
                     moleculeTagNames.delete("array");
-                    properties.set(dictRef, new NumberArrayWithAttributes(nodeAttributes, 
-                        toNumberArray(textContent.split(/\s+/)), " "));
+                    properties.set(dictRef, new Property(attribs,
+                        new NumberArrayWithAttributes(nodeAttributes,
+                            toNumberArray(textContent.split(/\s+/)), " ")));
                 } else {
                     throw new Error("Unexpected nodeName: " + nodeName);
                 }
@@ -687,7 +713,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 console.error("Remaining moleculeTagNames:");
                 moleculeTagNames.forEach(x => console.error(x));
                 throw new Error("Unexpected tags in molecule.");
-                }
+            }
 
             let molecule = new Molecule(attributes, atoms, bonds, properties, energyTransferModel, dOSCMethod);
             //console.log(molecule.toString());
@@ -701,13 +727,17 @@ document.addEventListener('DOMContentLoaded', (event) => {
      */
     function initReactions(xml: XMLDocument): void {
         console.log("initReactions");
-        let xml_reactions = xml.getElementsByTagName('reactionList')[0].getElementsByTagName('reaction');
+        let xml_reactions: HTMLCollectionOf<Element> = xml.getElementsByTagName('reactionList')[0].getElementsByTagName('reaction');
         let xml_reactions_length = xml_reactions.length;
         console.log("Number of reactions=" + xml_reactions_length);
         // Process each reaction.
         for (let i = 0; i < xml_reactions_length; i++) {
-            let reactionID = xml_reactions[i].getAttribute("id");
-            let xml_active = xml_reactions[i].getAttribute("active");
+            let attributes: Map<string, string> = getAttributes(xml_reactions[i]);
+            let reactionID = attributes.get("id");
+            if (reactionID == null) {
+                throw new Error("reactionID is null");
+            }
+            let xml_active = attributes.get("active");
             let active: boolean = true;
             if (xml_active != null) {
                 if (xml_active === "false") {
@@ -739,7 +769,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 }
                 // Load MCRCMethod.
                 //console.log("Load MCRCMethod...");
-                let mCRCMethod: MCRCMethod | null = null;
+                let mCRCMethod: MCRCMethod | undefined;
                 let xml_MCRCMethod: HTMLCollectionOf<Element> = xml_reactions[i].getElementsByTagName('me:MCRCMethod');
                 //console.log("xml_MCRCMethod=" + xml_MCRCMethod);
                 //console.log("xml_MCRCMethod.length=" + xml_MCRCMethod.length);
@@ -828,28 +858,25 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 }
                 // Load transition state.
                 //console.log("Load  transition state...");
-                let transitionState: TransitionState;
-                let xml_transitionState = xml_reactions[i].getElementsByTagName('me:transitionState');
+                let xml_transitionState: HTMLCollectionOf<Element> = xml_reactions[i].getElementsByTagName(
+                    'me:transitionState');
+                let transitionState: TransitionState | undefined;
                 if (xml_transitionState.length > 0) {
-                    let xml_molecule = xml_transitionState[0].getElementsByTagName('molecule')[0];
-                    let moleculeID = xml_molecule.getAttribute("ref");
-                    let role: string = getAttribute(xml_molecule, "role");
+                    let xml_molecule: Element = xml_transitionState[0].getElementsByTagName('molecule')[0];
+                    let moleculeID: string | null = xml_molecule.getAttribute("ref");
+                    let role: string | null = getAttribute(xml_molecule, "role");
                     transitionState = new TransitionState(get(molecules, moleculeID), role);
-                    // Load tunneling.
-                    let xml_tunneling = xml_reactions[i].getElementsByTagName('me:tunneling');
-                    let tunneling: Tunneling | null = null;
-                    if (xml_tunneling.length > 0) {
-                        tunneling = new Tunneling(getAttribute(xml_tunneling[0], "name"));
-                    }
-                    let reaction = new ReactionWithTransitionState(reactionID, active, reactants, products,
-                        mCRCMethod, transitionState, tunneling);
-                    reactions.set(reactionID, reaction);
-                    //console.log("reaction=" + reaction);
-                } else {
-                    let reaction = new Reaction(reactionID, active, reactants, products, mCRCMethod);
-                    reactions.set(reactionID, reaction);
-                    //console.log("reaction=" + reaction);
                 }
+                // Load tunneling.
+                let xml_tunneling = xml_reactions[i].getElementsByTagName('me:tunneling');
+                let tunneling: Tunneling | undefined;
+                if (xml_tunneling.length > 0) {
+                    tunneling = new Tunneling(getAttribute(xml_tunneling[0], "name"));
+                }
+                let reaction = new Reaction(attributes, reactionID, reactants, products,
+                    mCRCMethod, transitionState, tunneling);
+                reactions.set(reactionID, reaction);
+                //console.log("reaction=" + reaction);
             }
         }
     }
@@ -912,11 +939,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         let energyMax: number = Number.MIN_VALUE;
         reactions.forEach(function (reaction, id) {
             // Get TransitionState if there is one.
-            let transitionState: TransitionState | null = null;
-            if (reaction instanceof ReactionWithTransitionState) {
-                transitionState = reaction.transitionState;
-                //console.log("transitionState=" + transitionState);
-            }
+            let transitionState: TransitionState | undefined = reaction.transitionState;
             //console.log("reactant=" + reactant);
             let reactantsLabel: string = reaction.getReactantsLabel();
             reactants.add(reactantsLabel);
@@ -947,7 +970,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     }
                 });
                 // Insert transition state.
-                if (transitionState != null) {
+                if (transitionState != undefined) {
                     let tsn: string = transitionState.getName();
                     transitionStates.add(tsn);
                     orders.set(tsn, i);
@@ -960,7 +983,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 orders.set(productsLabel, i);
                 i++
             } else {
-                if (transitionState != null) {
+                if (transitionState != undefined) {
                     let tsn: string = transitionState.getName();
                     transitionStates.add(tsn);
                     orders.set(tsn, i);
@@ -1059,16 +1082,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
             //console.log("id=" + id);
             //console.log("reaction=" + reaction);
             // Get TransitionState if there is one.
-            let transitionState: TransitionState | null = null;
-            if (reaction instanceof ReactionWithTransitionState) {
-                transitionState = reaction.transitionState;
-            }
+            let transitionState: TransitionState | undefined = reaction.transitionState;
             //console.log("reactant=" + reactant);
             let reactantsLabel: string = reaction.getReactantsLabel();
             let productsLabel: string = reaction.getProductsLabel();
             let reactantOutXY: number[] = get(reactantsOutXY, reactantsLabel);
             let productInXY: number[] = get(productsInXY, productsLabel);
-            if (transitionState != null) {
+            if (transitionState != undefined) {
                 let transitionStateLabel: string = transitionState.getName();
                 let transitionStateInXY: number[] = get(transitionStatesInXY, transitionStateLabel);
                 drawLine(ctx, black, lwc, reactantOutXY[0], reactantOutXY[1], transitionStateInXY[0],

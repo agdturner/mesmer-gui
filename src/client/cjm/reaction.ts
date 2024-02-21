@@ -5,12 +5,13 @@ import {
 } from './functions.js';
 
 import {
-    Molecule, Measure
+    Molecule
 } from './molecule.js';
 
 import {
     getTag
 } from './xml.js';
+import { Attributes, NumberWithAttributes } from './classes.js';
 
 /**
  * A class for representing a molecule and a role.
@@ -79,7 +80,7 @@ export class TransitionState extends MR {
     override toString(): string {
         return `TransitionState(${super.toString()})`;
     }
-    
+
     /**
      * A convenience method to get the name of the transition state.
      * @returns {string} The name of the transition state.
@@ -117,12 +118,13 @@ export class MCRCType {
  * @param {number | undefined} upper The upper bound (optional).
  * @param {number | undefined} stepsize The stepsize (optional).
  */
-class BSMeasure extends Measure {
+class BSMeasure extends NumberWithAttributes {
     lower: number | undefined;
     upper: number | undefined;
     stepsize: number | undefined;
-    constructor(value: number, units: string | null, lower?: number, upper?: number, stepsize?: number) {
-        super(value, units);
+
+    constructor(attributes: Map<string, string>, value: number, units: string | null, lower?: number, upper?: number, stepsize?: number) {
+        super(attributes, value);
         this.lower = lower ?? undefined; // Use undefined as the default value
         this.upper = upper ?? undefined; // Use undefined as the default value
         this.stepsize = stepsize ?? undefined; // Use undefined as the default value
@@ -188,42 +190,55 @@ export class NInfinity extends BSMeasure {
 /**
  * A class for representing the MCRCMethod specifications.
  * Extended classes indicate how microcanonical rate constant is to be treated.
- * @param {string} name The name or xsi:type of the method.
  */
-export class MCRCMethod {
-    name: string;
-    constructor(name: string) {
-        this.name = name;
+export class MCRCMethod extends Attributes {
+
+    /**
+     * The name of the method.
+     */
+    mCRCMethodName: string;
+
+    /**
+     * @param {Map<string, string>} attributes The attributes.
+     * @param {string} name The name or xsi:type of the method.
+     */
+    constructor(attributes: Map<string,string>, name: string) {
+        super(attributes);
+        this.mCRCMethodName = name;
     }
     toString() {
-        return `MCRCMethod(name(${this.name}))`;
+        return `MCRCMethod(name(${this.mCRCMethodName}))`;
     }
 }
 
 /**
  * A class for representing the inverse Laplace transform (ILT) type of microcanonical rate constant.
- * @param {string} name The name or xsi:type of the method.
- * @param {PreExponential | null} preExponential The pre-exponential factor.
- * @param {ActivationEnergy | null} activationEnergy The activation energy.
- * @param {number | null} tInfinity The TInfinity.
- * @param {NInfinity | null} nInfinity The nInfinity.
  */
 export class MesmerILT extends MCRCMethod {
-    preExponential: PreExponential | null;;
-    activationEnergy: ActivationEnergy | null;
-    tInfinity: number | null;
-    nInfinity: NInfinity | null;
+    preExponential: PreExponential | undefined;;
+    activationEnergy: ActivationEnergy | undefined;
+    tInfinity: number | undefined;
+    nInfinity: NInfinity | undefined;
+
+    /**
+     * @param {string} name The name or xsi:type of the method.
+     * @param {PreExponential | undefined} preExponential The pre-exponential factor.
+     * @param {ActivationEnergy | undefined} activationEnergy The activation energy.
+     * @param {number | undefined} tInfinity The TInfinity.
+     * @param {NInfinity | undefined} nInfinity The nInfinity.
+     */
     constructor(name: string,
-        preExponential: PreExponential | null,
-        activationEnergy: ActivationEnergy | null,
-        tInfinity: number | null,
-        nInfinity: NInfinity | null) {
+        preExponential: PreExponential | undefined,
+        activationEnergy: ActivationEnergy | undefined,
+        tInfinity: number | undefined,
+        nInfinity: NInfinity | undefined) {
         super(name);
         this.preExponential = preExponential;
         this.activationEnergy = activationEnergy;
         this.tInfinity = tInfinity;
         this.nInfinity = nInfinity;
     }
+
     toString() {
         return `MesmerILT(${super.toString()}, ` +
             `preExponential(${this.preExponential}), ` +
@@ -299,7 +314,7 @@ export class SumOfStates {
             `units(${this.units}), ` +
             `angularMomentum(${this.angularMomentum.toString()}), ` +
             `noLogSpline(${this.noLogSpline.toString()}), ` +
-            `sumOfStatesPoints(${arrayToString(this.sumOfStatesPoints)}))`;
+            `sumOfStatesPoints(${arrayToString(this.sumOfStatesPoints, " ")}))`;
     }
 }
 
@@ -345,40 +360,77 @@ export class DefinedSumOfStates extends MCRCMethod {
 
 /**
  * A class for representing a reaction.
- * @param {string} id The id of the reaction.
- * @param {boolean} active Indicates if the reaction is active.
- * @param {Map<string, Reactant>} reactants The reactants in the reaction.
- * @param {Map<string, Product>} products The products of the reaction.
- * @param {MCRCMethod} mCRCMethod The MCRCMethod.
  */
-export class Reaction {
+export class Reaction extends Attributes {
+
+    /**
+     * The id of the reaction. This is also stored in the attributes, but is hee for convenience...
+     */
     id: string;
-    active: boolean;
+
+    /**
+     * The reactants in the reaction.
+     */
     reactants: Map<string, Reactant>;
+
+    /**
+     * The products of the reaction.
+     */
     products: Map<string, Product>;
-    mCRCMethod: MCRCMethod | null;
-    constructor(id: string, active: boolean, reactants: Map<string, Reactant>,
-        products: Map<string, Product>, mCRCMethod: MCRCMethod | null) {
+
+    /**
+     * The MCRCMethod.
+     */
+    mCRCMethod: MCRCMethod | undefined;
+
+    /**
+     * The transition state.
+     */
+    transitionState: TransitionState | undefined;
+
+    /**
+     * The tunneling.
+     */
+    tunneling: Tunneling | undefined;
+
+    /**
+     * @param {Map<string, string>} attributes The attributes.
+     * @param {string} id The id of the reaction.
+     * @param {Map<string, Reactant>} reactants The reactants in the reaction.
+     * @param {Map<string, Product>} products The products of the reaction.
+     * @param {MCRCMethod | undefined} mCRCMethod The MCRCMethod (optional).
+     * @param {TransitionState | undefined} transitionState The transition state (optional).
+     * @param {Tunneling | undefined} tunneling The tunneling (optional).
+     */
+    constructor(attributes: Map<string, string>, id: string,
+        reactants: Map<string, Reactant>, products: Map<string, Product>,
+        mCRCMethod?: MCRCMethod | undefined,
+        transitionState?: TransitionState | undefined, tunneling?: Tunneling | undefined) {
+        super(attributes);
         this.id = id;
-        this.active = active;
         this.reactants = reactants;
         this.products = products;
         this.mCRCMethod = mCRCMethod;
     }
-    
+
     /**
      * Convert the product to a string.
      * @returns String representation of the product.
      */
     toString(): string {
-        return `Reaction(` +
-            `id(${this.id}), ` +
-            `active(${this.active.toString()}), ` +
+        let s: string = super.toString();
+        return super.toString() + `id(${this.id}), ` +
             `reactants(${mapToString(this.reactants)}), ` +
             `products(${mapToString(this.products)}), ` +
-            `mCRCMethod(${this.mCRCMethod ? this.mCRCMethod.toString() : 'null'}))`;
+            `mCRCMethod(${this.mCRCMethod?.toString()}), ` +
+            `tunneling(${this.tunneling?.toString()}), ` +
+            `transitionState(${this.transitionState?.toString()}))`;
     }
-    
+
+    /**
+     * Get the label of the reactants.
+     * @returns The label of the reactants.
+     */
     getReactantsLabel(): string {
         return Array.from(this.reactants.values()).map(reactant => reactant.molecule.id).join(' + ');
     }
@@ -415,7 +467,7 @@ export class Reaction {
         let label: string = this.getReactantsLabel() + ' -> ' + this.getProductsLabel();
         return label;
     }
-    
+
     /**
      * @param {string} pad The pad (Optional).
      * @param {number} level The level of padding (Optional).
@@ -498,33 +550,5 @@ export class Tunneling {
     }
     toString() {
         return `tunneling(name(${this.name}))`;
-    }
-}
-
-/**
- * A class for representing a reaction.
- * @param {string} id The id of the reaction.
- * @param {boolean} active Indicates if the reaction is active.
- * @param {Map<string, Reactant>} reactants The reactants in the reaction.
- * @param {Map<string, Product>} products The products of the reaction.
- * @param {MCRCMethod | null} mCRCMethod The MCRCMethod.
- * @param {TransitionState} transitionState The transition state.
- * @param {Tunneling | null} tunneling The tunneling.
- */
-export class ReactionWithTransitionState extends Reaction {
-    transitionState: TransitionState;
-    tunneling: Tunneling | null;
-    constructor(id: string, active: boolean, reactants: Map<string, Reactant>,
-        products: Map<string, Product>, mCRCMethod: MCRCMethod | null,
-        transitionState: TransitionState, tunneling: Tunneling | null) {
-        super(id, active, reactants, products, mCRCMethod);
-        this.mCRCMethod = mCRCMethod;
-        this.transitionState = transitionState;
-        this.tunneling = tunneling;
-    }
-    toString() {
-        return `ReactionWithTransitionState(${super.toString()}, ` +
-            `tunneling(${this.tunneling ? this.tunneling.toString() : 'null'}), ` +
-            `transitionState(${this.transitionState.toString()}))`;
     }
 }

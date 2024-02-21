@@ -46,7 +46,7 @@ export abstract class Attributes {
         this.attributes.forEach((value, key) => {
             s += ` ${key}="${value}"`;
         });
-        s += `/>`;
+        s += ` />`;
         if (pad) {
             return "\n" + pad + s;
         }
