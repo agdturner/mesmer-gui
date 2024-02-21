@@ -1,5 +1,4 @@
-import { Attributes } from "./classes";
-import { Measure } from "./molecule";
+import { Attributes, NumberWithAttributes } from "./classes";
 
 
 /**
@@ -27,32 +26,33 @@ export class PTpair {
 
 /**
  * A class for representing the experiment conditions.
- * @param {string} bathGas The bath gas.
- * @param {PTpair[]} pTs The Pressure and Temperature pairs.
  */
 export class Conditions extends Attributes {
     bathGas: string;
     pTs: PTpair[];
+
+    /**
+     * @param {Map<string, string>} attributes The attributes.
+     * @param {string} bathGas The bath gas.
+     * @param {PTpair[]} pTs The Pressure and Temperature pairs.
+     */
     constructor(attributes: Map<string, string>, bathGas: string, pTs: PTpair[]) {
         super(attributes);
         this.bathGas = bathGas;
         this.pTs = pTs;
     }
-    toString() {
-        return `Conditions(` +
-            `bathGas(${this.bathGas}), ` +
-            `pTs(${this.pTs.toString()}))`;
-    }
 }
 
 /**
  * A class for measures of grain size.
- * @param {number} value The value.
- * @param {string} units The units.
  */
-export class GrainSize extends Measure {
-    constructor(value: number, units: string) {
-        super(value, units);
+export class GrainSize extends NumberWithAttributes {
+
+    /**
+     * @param {string} units The units.
+     */
+    constructor(attributes: Map<string, string>, value: number) {
+        super(attributes, value);
     }
     toString() {
         return `GrainSize(${super.toString()})`;

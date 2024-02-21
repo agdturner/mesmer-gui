@@ -1,84 +1,73 @@
-import { attribute } from 'libxmljs/dist/lib/bindings/functions.js';
-import {
-    arrayToString,
-    mapToString
+import {mapToString
 } from './functions.js';
 
 import {
     Molecule
 } from './molecule.js';
 
-import {
-    getTag
-} from './xml.js';
 import { Attributes, NumberWithAttributes } from './classes.js';
 
 /**
- * A class for representing a molecule and a role.
- * @param {Molecule} molecule The molecule.
- * @param {string | null} role The role of the molecule.
+ * A class for representing a Reaction Molecule.
  */
-class MR {
-    molecule: Molecule;
-    role: string | null;
-    constructor(molecule: Molecule, role: string | null) {
-        this.molecule = molecule;
-        this.role = role;
-    }
-    toString() {
-        return `MR(molecule(${this.molecule}, role(${this.role ? this.role : 'null'}))`;
-    }
-}
-
-/**
- * A class for representing a reactant in a reaction.
- * @param {Molecule} molecule The molecule.
- * @param {string | null} role The role of the molecule.
- */
-export class Reactant extends MR {
-    constructor(molecule: Molecule, role: string | null) {
-        super(molecule, role);
-    }
-    toString() {
-        return `Reactant(${super.toString()})`;
-    }
-}
-
-/**
- * A class for representing a product in a reaction.
- * @param {Molecule} molecule The molecule.
- * @param {string} role The role of the molecule.
- */
-export class Product extends MR {
-    constructor(molecule: Molecule, role: string) {
-        super(molecule, role);
-    }
+class ReactionMolecule extends Attributes {
 
     /**
-     * Convert the product to a string.
-     * @returns String representation of the product.
+     * A reference to the molecule.
      */
-    override toString(): string {
-        return `Product(${super.toString()})`;
+    molecule: Molecule;
+    
+    /**
+     * @param {Map<string, string>} attributes The attributes.
+     * @param {Molecule} molecule The molecule.
+     */
+    constructor(attributes: Map<string, string>, molecule: Molecule) {
+        super(attributes);
+        this.molecule = molecule;
+    }
+}
+
+/**
+ * A class for representing a reactant.
+ * This is a molecule often with a role in a reaction.
+ */
+export class Reactant extends ReactionMolecule {
+
+    /**
+     * @param {Map<string, string>} attributes The attributes.
+     * @param {Molecule} molecule The molecule.
+     */
+    constructor(attributes: Map<string, string>, molecule: Molecule) {
+        super(attributes, molecule);
+    }
+}
+
+/**
+ * A class for representing a product.
+ * This is a molecule produced in a reaction.
+ */
+export class Product extends ReactionMolecule {
+
+    /**
+     * @param {Map<string, string>} attributes The attributes.
+     * @param {Molecule} molecule The molecule.
+     */
+    constructor(attributes: Map<string, string>, molecule: Molecule) {
+        super(attributes, molecule);
     }
 }
 
 /**
  * A class for representing a transition state.
- * @param {Molecule} molecule The molecule.
- * @param {string} role The role of the molecule.
  */
-export class TransitionState extends MR {
-    constructor(molecule: Molecule, role: string) {
-        super(molecule, role);
-    }
+export class TransitionState extends ReactionMolecule {
 
     /**
-     * Convert the transition state to a string.
-     * @returns {string} The string representation of the transition state.
+     * @param {Map<string, string>} attributes The attributes.
+     * @param {Molecule} molecule The molecule.
      */
-    override toString(): string {
-        return `TransitionState(${super.toString()})`;
+    constructor(attributes: Map<string, string>, molecule: Molecule) {
+        super(attributes, molecule);
     }
 
     /**
@@ -90,100 +79,48 @@ export class TransitionState extends MR {
     }
 }
 
+
 /**
- * A class for representing MCRCTypes - microcanonical rate constant types.
- * @param {string} type The type of the microcanonical rate constant.
+ * A class for representing the Arrhenius pre-exponential factor.
  */
-export class MCRCType {
-    type: string;
-    constructor(type: string) {
-        this.type = type;
-    }
+export class PreExponential extends NumberWithAttributes {
 
     /**
-     * Convert the MCRCType to a string.
-     * @returns {string} The string representation of the MCRCType.
+     * A class for representing the Arrhenius pre-exponential factor.
+     * @param {Map<string, string>} attributes The attributes. 
+     * @param {number} value The value of the factor.
      */
-    toString(): string {
-        return `MCRCType(` +
-            `type(${this.type}))`;
-    }
-}
-
-/**
- * A class for representing a Bounded Stepped Measure.
- * @param {number} value The value of the factor.
- * @param {string | null} units The units.
- * @param {number | undefined} lower The lower bound (optional).
- * @param {number | undefined} upper The upper bound (optional).
- * @param {number | undefined} stepsize The stepsize (optional).
- */
-class BSMeasure extends NumberWithAttributes {
-    lower: number | undefined;
-    upper: number | undefined;
-    stepsize: number | undefined;
-
-    constructor(attributes: Map<string, string>, value: number, units: string | null, lower?: number, upper?: number, stepsize?: number) {
+    constructor(attributes: Map<string, string>, value: number) {
         super(attributes, value);
-        this.lower = lower ?? undefined; // Use undefined as the default value
-        this.upper = upper ?? undefined; // Use undefined as the default value
-        this.stepsize = stepsize ?? undefined; // Use undefined as the default value
-    }
-    toString() {
-        return `BSMeasure(${super.toString()}, ` +
-            `lower(${this.lower == undefined ? 'undefined' : this.lower.toString()}), ` + // Check if lower is undefined
-            `upper(${this.upper == undefined ? 'undefined' : this.upper.toString()}), ` + // Check if upper is undefined
-            `stepsize(${this.stepsize == undefined ? 'undefined' : this.stepsize.toString()}))`; // Check if stepsize is undefined
-    }
-}
-
-/**
- * A class for representing the Arrhenius pre-exponential factor. 
- * @param {number} value The value of the factor.
- * @param {string} units The units.
- * @param {number | undefined} lower The lower bound.
- * @param {number | undefined} upper The upper bound.
- * @param {number | undefined} stepsize The stepsize.
- */
-export class PreExponential extends BSMeasure {
-    constructor(value: number, units: string, lower?: number | undefined, upper?: number | undefined,
-        stepsize?: number | undefined) {
-        super(value, units, lower, upper, stepsize);
-    }
-    toString() {
-        return `PreExponential(${super.toString()})`;
     }
 }
 
 /**
  * A class for representing the Arrhenius activation energy factor.
- * @param {number} value The value of the factor.
- * @param {string} units The units.
  */
-export class ActivationEnergy extends Measure {
-    constructor(value: number, units: string) {
-        super(value, units);
-    }
-    toString() {
-        return `ActivationEnergy(${super.toString()})`;
+export class ActivationEnergy extends NumberWithAttributes {
+
+    /**
+     * A class for representing the Arrhenius pre-exponential factor.
+     * @param {Map<string, string>} attributes The attributes. 
+     * @param {number} value The value of the factor.
+     */
+    constructor(attributes: Map<string, string>, value: number) {
+        super(attributes, value);
     }
 }
 
 /**
- * A class for representing the modified Arrhenius parameter factor. 
- * @param {number} value The value of the factor.
- * @param {string | null} units The units.
- * @param {number | undefined} lower The lower bound.
- * @param {number | undefined} upper The upper bound.
- * @param {number | undefined} stepsize The stepsize.
+ * A class for representing the modified Arrhenius parameter factor.
  */
-export class NInfinity extends BSMeasure {
-    constructor(value: number, units: string | null, lower: number | undefined, upper: number | undefined,
-        stepsize: number | undefined) {
-        super(value, units, lower, upper, stepsize);
-    }
-    toString() {
-        return `NInfinity(${super.toString()})`;
+export class NInfinity extends NumberWithAttributes {
+
+    /**
+     * @param {Map<string, string>} attributes The attributes. 
+     * @param {number} value The value of the factor.
+     */
+    constructor(attributes: Map<string, string>, value: number) {
+        super(attributes, value);
     }
 }
 
@@ -202,7 +139,7 @@ export class MCRCMethod extends Attributes {
      * @param {Map<string, string>} attributes The attributes.
      * @param {string} name The name or xsi:type of the method.
      */
-    constructor(attributes: Map<string,string>, name: string) {
+    constructor(attributes: Map<string, string>, name: string) {
         super(attributes);
         this.mCRCMethodName = name;
     }
@@ -221,18 +158,16 @@ export class MesmerILT extends MCRCMethod {
     nInfinity: NInfinity | undefined;
 
     /**
-     * @param {string} name The name or xsi:type of the method.
+     * @param {Map<string, string>} attributes The attributes.
      * @param {PreExponential | undefined} preExponential The pre-exponential factor.
      * @param {ActivationEnergy | undefined} activationEnergy The activation energy.
      * @param {number | undefined} tInfinity The TInfinity.
      * @param {NInfinity | undefined} nInfinity The nInfinity.
      */
-    constructor(name: string,
-        preExponential: PreExponential | undefined,
-        activationEnergy: ActivationEnergy | undefined,
-        tInfinity: number | undefined,
+    constructor(attributes: Map<string, string>, preExponential: PreExponential | undefined,
+        activationEnergy: ActivationEnergy | undefined, tInfinity: number | undefined,
         nInfinity: NInfinity | undefined) {
-        super(name);
+        super(attributes, "MesmerILT");
         this.preExponential = preExponential;
         this.activationEnergy = activationEnergy;
         this.tInfinity = tInfinity;
@@ -250,13 +185,6 @@ export class MesmerILT extends MCRCMethod {
 
 /**
  * A class for representing the Zhu-Nakamura crossing MCRCMethod.
- * @param {string} name The name or xsi:type of the method.
- * @param {number} harmonicReactantDiabat_FC The harmonic reactant diabatic FC.
- * @param {number} harmonicReactantDiabat_XO The harmonic reactant diabatic XO.
- * @param {number} harmonicProductDiabat_DE The harmonic product diabatic DE.
- * @param {number} exponentialProductDiabat_A The exponential product diabatic A.
- * @param {number} exponentialProductDiabat_B The exponential product diabatic B.
- * @param {number} exponentialProductDiabat_DE The exponential product diabatic DE.
  */
 export class ZhuNakamuraCrossing extends MCRCMethod {
     harmonicReactantDiabat_FC: number;
@@ -265,14 +193,24 @@ export class ZhuNakamuraCrossing extends MCRCMethod {
     exponentialProductDiabat_A: number;
     exponentialProductDiabat_B: number;
     exponentialProductDiabat_DE: number;
-    constructor(name: string,
+
+    /**
+     * @param {Map<string, string>} attributes The attributes.
+     * @param {number} harmonicReactantDiabat_FC The harmonic reactant diabatic FC.
+     * @param {number} harmonicReactantDiabat_XO The harmonic reactant diabatic XO.
+     * @param {number} harmonicProductDiabat_DE The harmonic product diabatic DE.
+     * @param {number} exponentialProductDiabat_A The exponential product diabatic A.
+     * @param {number} exponentialProductDiabat_B The exponential product diabatic B.
+     * @param {number} exponentialProductDiabat_DE The exponential product diabatic DE.
+     */
+    constructor(attributes: Map<string, string>,
         harmonicReactantDiabat_FC: number,
         harmonicReactantDiabat_XO: number,
         harmonicProductDiabat_DE: number,
         exponentialProductDiabat_A: number,
         exponentialProductDiabat_B: number,
         exponentialProductDiabat_DE: number) {
-        super(name);
+        super(attributes, "ZhuNakamuraCrossing");
         this.harmonicReactantDiabat_FC = harmonicReactantDiabat_FC;
         this.harmonicReactantDiabat_XO = harmonicReactantDiabat_XO;
         this.harmonicProductDiabat_DE = harmonicProductDiabat_DE;
@@ -298,7 +236,8 @@ export class ZhuNakamuraCrossing extends MCRCMethod {
  * @param {boolean} noLogSpline The no log spline attribute.
  * @param {SumOfStatesPoint[]} sumOfStatesPoints The sum of states points.
  */
-export class SumOfStates {
+/*
+export class SumOfStates extends NumberWithAttributes {
     units: string;
     angularMomentum: boolean;
     noLogSpline: boolean;
@@ -317,6 +256,7 @@ export class SumOfStates {
             `sumOfStatesPoints(${arrayToString(this.sumOfStatesPoints, " ")}))`;
     }
 }
+*/
 
 /**
  * A class for representing a sum of states point.
@@ -324,6 +264,7 @@ export class SumOfStates {
  * @param {number} energy The energy of the point.
  * @param {number} angMomMag The angular momentum magnitude of the point.
  */
+/*
 export class SumOfStatesPoint {
     value: number;
     energy: number;
@@ -340,14 +281,17 @@ export class SumOfStatesPoint {
             `angMomMag(${this.angMomMag.toString()}))`;
     }
 }
+*/
 
 /**
  * A class for representing the DefinedSumOfStates MCRCMethod.
  * @param {string} name The name or xsi:type of the method.
  * @param {SumOfStates} sumOfStates The sum of states.
  */
+/*
 export class DefinedSumOfStates extends MCRCMethod {
     sumOfStates: SumOfStates;
+
     constructor(name: string, sumOfStates: SumOfStates) {
         super(name);
         this.sumOfStates = sumOfStates;
@@ -357,6 +301,7 @@ export class DefinedSumOfStates extends MCRCMethod {
             `sumOfStates(${this.sumOfStates.toString()}))`;
     }
 }
+*/
 
 /**
  * A class for representing a reaction.
@@ -411,6 +356,8 @@ export class Reaction extends Attributes {
         this.reactants = reactants;
         this.products = products;
         this.mCRCMethod = mCRCMethod;
+        this.transitionState = transitionState;
+        this.tunneling = tunneling;
     }
 
     /**

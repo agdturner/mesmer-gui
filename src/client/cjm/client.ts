@@ -10,7 +10,7 @@ import {
 
 import {
     Reaction, TransitionState, Reactant, Product, MCRCMethod, MesmerILT,
-    PreExponential, ActivationEnergy, NInfinity, DefinedSumOfStates, ZhuNakamuraCrossing, Tunneling
+    PreExponential, ActivationEnergy, NInfinity, ZhuNakamuraCrossing, Tunneling
 } from './reaction.js';
 
 import {
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     console.log("inputElement.files[" + i + "]=" + inputElement.files[i]);
                 }
                 let file: File | null = inputElement.files[0];
-                console.log("file=" + file);
+                //console.log("file=" + file);
                 /*
                 if (file) {
                     console.log(file.name);
@@ -476,18 +476,18 @@ document.addEventListener('DOMContentLoaded', (event) => {
             let activationEnergy: string = "";
             let tInfinity: string = "";
             let nInfinity: string = "";
-            if (reaction.transitionState) {
+            if (reaction.transitionState != undefined) {
                 transitionState = reaction.transitionState.getName();
             }
             if (reaction.mCRCMethod != undefined) {
                 if (reaction.mCRCMethod instanceof MesmerILT) {
                     if (reaction.mCRCMethod.preExponential != null) {
                         preExponential = reaction.mCRCMethod.preExponential.value.toString() + " "
-                            + reaction.mCRCMethod.preExponential.attributes.units;
+                            + reaction.mCRCMethod.preExponential.attributes.get("units");
                     }
                     if (reaction.mCRCMethod.activationEnergy != null) {
                         activationEnergy = reaction.mCRCMethod.activationEnergy.value.toString() + " "
-                            + reaction.mCRCMethod.activationEnergy.units;
+                            + reaction.mCRCMethod.activationEnergy.attributes.get("units");
                     }
                     if (reaction.mCRCMethod.tInfinity != null) {
                         tInfinity = reaction.mCRCMethod.tInfinity.toString();
@@ -495,12 +495,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     if (reaction.mCRCMethod.nInfinity != null) {
                         nInfinity = reaction.mCRCMethod.nInfinity.value.toString();
                     }
-                } else if (reaction.mCRCMethod instanceof ZhuNakamuraCrossing) {
-                    throw new Error("ZhuNakamuraCrossing not implemented");
-                } else if (reaction.mCRCMethod instanceof DefinedSumOfStates) {
-                    throw new Error("DefinedSumOfStates not implemented");
-                } else if (reaction.mCRCMethod instanceof Tunneling) {
-                    throw new Error("Unexpected mCRCMethod: " + reaction.mCRCMethod);
+                } else {
+                    if (reaction.mCRCMethod.attributes.get("name") == "RRKM") {
+                    } else {
+                        throw new Error("Unexpected mCRCMethod: " + reaction.mCRCMethod);
+                    }
                 }
             }
             reactionsTable += getTR(getTD(id) + getTD(reactants) + getTD(products) + getTD(transitionState)
@@ -582,8 +581,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
             cns.forEach(function (node) {
                 moleculeTagNames.add(node.nodeName);
             });
-            console.log("moleculeTagNames:");
-            moleculeTagNames.forEach(x => console.log(x));
+            //console.log("moleculeTagNames:");
+            //moleculeTagNames.forEach(x => console.log(x));
 
             // Set atoms.
             const atoms: Map<string, Atom> = new Map();
@@ -678,15 +677,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     if (els.length != 1) {
                         throw new Error("energyTransferModel length=" + els.length);
                     }
-                    let type = els[0].getAttribute("xsi:type");
-                    if (type != null) {
-                        let xml_deltaEDown = els[0].getElementsByTagName("me:deltaEDown");
-                        if (xml_deltaEDown != null) {
-                            let units: string = getAttribute(xml_deltaEDown[0], "units");
-                            let value: number = parseFloat(getNodeValue(getFirstChildNode(xml_deltaEDown[0])));
-                            let deltaEDown: DeltaEDown = new DeltaEDown(value, units);
-                            energyTransferModel = new EnergyTransferModel(type, deltaEDown);
+                    let xml_deltaEDown = els[0].getElementsByTagName("me:deltaEDown");
+                    if (xml_deltaEDown != null) {
+                        if (xml_deltaEDown.length != 1) {
+                            throw new Error("deltaEDown length=" + xml_deltaEDown.length);
                         }
+                        let value: number = parseFloat(getNodeValue(getFirstChildNode(xml_deltaEDown[0])));
+                        let deltaEDown: DeltaEDown = new DeltaEDown(getAttributes(xml_deltaEDown[0]), value);
+                        energyTransferModel = new EnergyTransferModel(getAttributes(els[0]), deltaEDown);
                     }
                 }
             }
@@ -753,8 +751,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 for (let j = 0; j < xml_reactants.length; j++) {
                     let xml_molecule: Element = getFirstElement(xml_reactants[j], 'molecule');
                     let moleculeID: string = getAttribute(xml_molecule, "ref");
-                    let reactant: Reactant = new Reactant(get(molecules, moleculeID),
-                        xml_molecule.getAttribute("role"));
+                    let reactant: Reactant = new Reactant(getAttributes(xml_reactants[j]),
+                    get(molecules, moleculeID));
                     reactants.set(moleculeID, reactant);
                 }
                 // Load products.
@@ -765,7 +763,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     let xml_molecule = getFirstElement(xml_products[j], 'molecule');
                     let moleculeID: string = getAttribute(xml_molecule, "ref");
                     products.set(moleculeID,
-                        new Product(get(molecules, moleculeID), getAttribute(xml_molecule, "role")));
+                        new Product(getAttributes(xml_products[j]),
+                         get(molecules, moleculeID)));
                 }
                 // Load MCRCMethod.
                 //console.log("Load MCRCMethod...");
@@ -774,45 +773,29 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 //console.log("xml_MCRCMethod=" + xml_MCRCMethod);
                 //console.log("xml_MCRCMethod.length=" + xml_MCRCMethod.length);
                 if (xml_MCRCMethod.length > 0) {
-                    let name: string | null = xml_MCRCMethod[0].getAttribute("name");
+                    let attributes: Map<string, string> = getAttributes(xml_MCRCMethod[0]);
+                    let name: string | undefined = attributes.get("name");
                     if (name == null) {
-                        name = xml_MCRCMethod[0].getAttribute("xsi:type");
-                        if (name != null) {
-                            if (name === "me:MesmerILT") {
-                                let preExponential: PreExponential | null = null;
+                        let type = attributes.get("xsi:type");
+                        if (type != null) {
+                            if (type === "me:MesmerILT") {
+                                let preExponential: PreExponential | undefined;
                                 let xml_preExponential = xml_MCRCMethod[0].getElementsByTagName("me:preExponential");
                                 if (xml_preExponential != null) {
                                     if (xml_preExponential[0] != null) {
                                         let value: number = parseFloat(getNodeValue(getFirstChildNode(xml_preExponential[0])));
-                                        let units: string = getAttribute(xml_preExponential[0], "units");
-                                        let lower: number | undefined = undefined;
-                                        let xml_lower = xml_preExponential[0].getAttribute("lower");
-                                        if (xml_lower != null) {
-                                            lower = parseFloat(xml_lower);
-                                        }
-                                        let upper: number | undefined = undefined;
-                                        let xml_upper = xml_preExponential[0].getAttribute("upper");
-                                        if (xml_upper != null) {
-                                            upper = parseFloat(xml_upper);
-                                        }
-                                        let stepsize: number | undefined = undefined;
-                                        let xml_stepsize = xml_preExponential[0].getAttribute("stepsize");
-                                        if (xml_stepsize != null) {
-                                            stepsize = parseFloat(xml_stepsize);
-                                        }
-                                        preExponential = new PreExponential(value, units, lower, upper, stepsize);
+                                        preExponential = new PreExponential(getAttributes(xml_preExponential[0]), value);
                                     }
                                 }
-                                let activationEnergy: ActivationEnergy | null = null;
+                                let activationEnergy: ActivationEnergy | undefined;
                                 let xml_activationEnergy = xml_MCRCMethod[0].getElementsByTagName("me:activationEnergy");
                                 if (xml_activationEnergy != null) {
                                     if (xml_activationEnergy[0] != null) {
                                         let value: number = parseFloat(getNodeValue(getFirstChildNode(xml_activationEnergy[0])));
-                                        let units: string = getAttribute(xml_activationEnergy[0], "units");
-                                        activationEnergy = new ActivationEnergy(value, units);
+                                        activationEnergy = new ActivationEnergy(getAttributes(xml_activationEnergy[0]), value);
                                     }
                                 }
-                                let tInfinity: number | null = null;
+                                let tInfinity: number | undefined;
                                 let xml_tInfinity = xml_MCRCMethod[0].getElementsByTagName("me:TInfinity");
                                 if (xml_tInfinity != null) {
                                     if (xml_tInfinity[0] != null) {
@@ -823,37 +806,19 @@ document.addEventListener('DOMContentLoaded', (event) => {
                                         }
                                     }
                                 }
-                                let nInfinity: NInfinity | null = null;
+                                let nInfinity: NInfinity | undefined;
                                 let xml_nInfinity = xml_MCRCMethod[0].getElementsByTagName("me:nInfinity");
                                 if (xml_nInfinity != null) {
                                     if (xml_nInfinity[0] != null) {
                                         let value: number = parseFloat(getNodeValue(getFirstChildNode(xml_nInfinity[0])));
-                                        let units: string | null = xml_nInfinity[0].getAttribute("units");
-                                        let lower: number | undefined = undefined;
-                                        let xml_lower = xml_nInfinity[0].getAttribute("lower");
-                                        if (xml_lower != null) {
-                                            lower = parseFloat(xml_lower);
-                                        }
-                                        let upper: number | undefined = undefined;
-                                        let xml_upper = xml_nInfinity[0].getAttribute("upper");
-                                        if (xml_upper != null) {
-                                            upper = parseFloat(xml_upper);
-                                        }
-                                        let stepsize: number | undefined = undefined;
-                                        let xml_stepsize = xml_nInfinity[0].getAttribute("stepsize");
-                                        if (xml_stepsize != null) {
-                                            stepsize = parseFloat(xml_stepsize);
-                                        }
-                                        nInfinity = new NInfinity(value, units, lower, upper, stepsize);
+                                        nInfinity = new NInfinity(getAttributes(xml_nInfinity[0]), value);
                                     }
                                 }
-                                mCRCMethod = new MesmerILT(name, preExponential, activationEnergy, tInfinity, nInfinity);
-                            } else {
-                                mCRCMethod = new MCRCMethod(name);
+                                mCRCMethod = new MesmerILT(attributes, preExponential, activationEnergy, tInfinity, nInfinity);
                             }
                         }
                     } else {
-                        mCRCMethod = new MCRCMethod(name);
+                        mCRCMethod = new MCRCMethod(attributes, name);
                     }
                 }
                 // Load transition state.
@@ -864,8 +829,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 if (xml_transitionState.length > 0) {
                     let xml_molecule: Element = xml_transitionState[0].getElementsByTagName('molecule')[0];
                     let moleculeID: string | null = xml_molecule.getAttribute("ref");
-                    let role: string | null = getAttribute(xml_molecule, "role");
-                    transitionState = new TransitionState(get(molecules, moleculeID), role);
+                    transitionState = new TransitionState(getAttributes(xml_molecule), get(molecules, moleculeID));
+                    console.log("transitionState moleculeID=" + transitionState.molecule.getID());
+                    console.log("transitionState role=" + transitionState.attributes.get("role"));
                 }
                 // Load tunneling.
                 let xml_tunneling = xml_reactions[i].getElementsByTagName('me:tunneling');
