@@ -27,6 +27,7 @@ import {
     getTextHeight, getTextWidth
 } from './canvas.js';
 import { NumberArrayWithAttributes, NumberWithAttributes } from './classes.js';
+import { create } from 'domain';
 
 //declare var global: any;
 //const globalScope = (typeof global !== 'undefined') ? global : window;
@@ -192,6 +193,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
             }
         };
         inputElement.click();
+        // Make the save button visible.
+        let saveButton: HTMLElement | null = document.getElementById('saveButton');
+        if (saveButton != null) {
+            saveButton.style.display = 'inline';
+        }
     }
 
     /**
@@ -229,7 +235,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         // Create modelParameters
 
         // create me.control
-
 
         // Create a new Blob object from the data
         let blob = new Blob([header, mesmerStartTag, title_xml, moleculeList, reactionList, mesmerEndTag],
@@ -394,43 +399,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
          * Generate molecules table.
          */
         initMolecules(xml);
-        //let molecules: Map<string, Molecule> = getMolecules(xml);
-        // Prepare table headings.
-        let moleculesTable = getTH([
-            "Name",
-            "Energy<br>kJ/mol",
-            "Rotation constants<br>cm<sup>-1</sup>",
-            "Vibration frequencies<br>cm<sup>-1</sup>"]);
-        molecules.forEach(function (molecule, id) {
-            //console.log("id=" + id);
-            //console.log("molecule=" + molecule);
-            let energyNumber: number = molecule.getEnergy();
-            let energy: string;
-            if (energyNumber == null) {
-                energy = "";
-            } else {
-                energy = energyNumber.toString();
-            }
-            //console.log("energy=" + energy);
-            let rotationConstants: string = "";
-            let rotConsts: number[] | undefined = molecule.getRotationConstants();
-            if (rotConsts != undefined) {
-                rotationConstants = arrayToString(rotConsts, " ");
-            }
-            let vibrationFrequencies: string = "";
-            let vibFreqs: number[] | undefined = molecule.getVibrationFrequencies();
-            if (vibFreqs != undefined) {
-                vibrationFrequencies = arrayToString(vibFreqs, " ");
-            }
-            moleculesTable += getTR(getTD(id)
-                + getTD(getInput("number", id + "_energy", "setEnergy(this)", energy))
-                + getTD(rotationConstants, true)
-                + getTD(vibrationFrequencies, true));
-        });
-        const moleculesElement = document.getElementById("molecules");
-        if (moleculesElement !== null) {
-            moleculesElement.innerHTML = moleculesTable;
-        }
+        displayMoleculesTable();
 
         // Add event listeners to molecules table.
         molecules.forEach(function (molecule, id) {
@@ -463,78 +432,41 @@ document.addEventListener('DOMContentLoaded', (event) => {
          * Generate reactions table.
          */
         initReactions(xml);
-        // Prepare table headings.
-        let reactionsTable = getTH(["ID", "Reactants", "Products", "Transition State",
-            "PreExponential", "Activation Energy", "TInfinity", "NInfinity"]);
-        reactions.forEach(function (reaction, id) {
-            //console.log("id=" + id);
-            //console.log("reaction=" + reaction);
-            let reactants: string = arrayToString(Array.from(reaction.reactants.keys()), " ");
-            let products: string = arrayToString(Array.from(reaction.products.keys()), " ");
-            let transitionState: string = "";
-            let preExponential: string = "";
-            let activationEnergy: string = "";
-            let tInfinity: string = "";
-            let nInfinity: string = "";
-            if (reaction.transitionState != undefined) {
-                transitionState = reaction.transitionState.getName();
-            }
-            if (reaction.mCRCMethod != undefined) {
-                if (reaction.mCRCMethod instanceof MesmerILT) {
-                    if (reaction.mCRCMethod.preExponential != null) {
-                        preExponential = reaction.mCRCMethod.preExponential.value.toString() + " "
-                            + reaction.mCRCMethod.preExponential.attributes.get("units");
-                    }
-                    if (reaction.mCRCMethod.activationEnergy != null) {
-                        activationEnergy = reaction.mCRCMethod.activationEnergy.value.toString() + " "
-                            + reaction.mCRCMethod.activationEnergy.attributes.get("units");
-                    }
-                    if (reaction.mCRCMethod.tInfinity != null) {
-                        tInfinity = reaction.mCRCMethod.tInfinity.toString();
-                    }
-                    if (reaction.mCRCMethod.nInfinity != null) {
-                        nInfinity = reaction.mCRCMethod.nInfinity.value.toString();
-                    }
-                } else {
-                    if (reaction.mCRCMethod.attributes.get("name") == "RRKM") {
-                    } else {
-                        throw new Error("Unexpected mCRCMethod: " + reaction.mCRCMethod);
-                    }
-                }
-            }
-            reactionsTable += getTR(getTD(id) + getTD(reactants) + getTD(products) + getTD(transitionState)
-                + getTD(preExponential, true) + getTD(activationEnergy, true) + getTD(tInfinity, true)
-                + getTD(nInfinity, true));
-            const reactionsElement = document.getElementById("reactions");
-            if (reactionsElement !== null) {
-                reactionsElement.innerHTML = reactionsTable;
-            }
-        });
+        displayReactionsTable();
 
         /**
          * Generate reactions diagram.
          */
-        let canvas: HTMLCanvasElement = document.getElementById("diagram") as HTMLCanvasElement;
-        let font: string = "14px Arial";
-        let dark: boolean = true;
-        let lw: number = 4;
-        let lwc: number = 2;
-        if (canvas !== null) {
-            drawReactionDiagram(canvas, molecules, reactions, dark, font, lw, lwc);
+        if (reactions.size > 1) {
+            // Set the heading.
+            const element = document.getElementById("reactions_diagram_title");
+            if (element != null) {
+                element.innerHTML = "Diagram";
+            }
+            // Display the diagram.
+            let canvas: HTMLCanvasElement | null = document.getElementById("reactions_diagram") as HTMLCanvasElement;
+            let font: string = "14px Arial";
+            let dark: boolean = true;
+            let lw: number = 4;
+            let lwc: number = 2;
+            if (canvas != null) {
+                canvas.style.display = "block";
+                drawReactionDiagram(canvas, molecules, reactions, dark, font, lw, lwc);
+            }
         }
 
         /**
-         * Generate reactions table.
+         * Generate conditions table.
          */
         //initConditions(xml);
 
         /**
-         * Generate reactions table.
+         * Generate parameters table.
          */
         //initModelParameters(xml);
 
         /**
-         * Generate reactions table.
+         * Generate control table.
          */
         //initControl(xml);
     }
@@ -549,7 +481,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
         // but reactions do not have a moleculeList element.
         let xml_moleculeList: HTMLCollectionOf<Element> = xml.getElementsByTagName('moleculeList');
         if (xml_moleculeList.length != 1) {
+            //return;
             throw new Error("Expecting 1 moleculeList but finding " + xml_moleculeList.length);
+        }
+        // Set the heading.
+        const element = document.getElementById("molecules_title");
+        if (element != null) {
+            element.innerHTML = "Molecules";
         }
         // The moleculeList element should have one or more molecule elements and no other elements.
         let moleculeListTagNames: Set<string> = new Set();
@@ -729,6 +667,15 @@ document.addEventListener('DOMContentLoaded', (event) => {
         let xml_reactions_length = xml_reactions.length;
         console.log("Number of reactions=" + xml_reactions_length);
         // Process each reaction.
+        if (xml_reactions_length == 0) {
+            //return;
+            throw new Error("Expecting 1 reactionsList but finding " + xml_reactions_length);
+        }
+        // Set the heading.
+        const element = document.getElementById("reactions_title");
+        if (element != null) {
+            element.innerHTML = "Reactions";
+        }
         for (let i = 0; i < xml_reactions_length; i++) {
             let attributes: Map<string, string> = getAttributes(xml_reactions[i]);
             let reactionID = attributes.get("id");
@@ -752,7 +699,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     let xml_molecule: Element = getFirstElement(xml_reactants[j], 'molecule');
                     let moleculeID: string = getAttribute(xml_molecule, "ref");
                     let reactant: Reactant = new Reactant(getAttributes(xml_reactants[j]),
-                    get(molecules, moleculeID));
+                        get(molecules, moleculeID));
                     reactants.set(moleculeID, reactant);
                 }
                 // Load products.
@@ -764,7 +711,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     let moleculeID: string = getAttribute(xml_molecule, "ref");
                     products.set(moleculeID,
                         new Product(getAttributes(xml_products[j]),
-                         get(molecules, moleculeID)));
+                            get(molecules, moleculeID)));
                 }
                 // Load MCRCMethod.
                 //console.log("Load MCRCMethod...");
@@ -1104,6 +1051,101 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     }
 });
+
+function displayMoleculesTable() {
+    if (molecules.size == 0) {
+        return;
+    }
+    // Prepare table headings.
+    let moleculesTable = getTH([
+        "Name",
+        "Energy<br>kJ/mol",
+        "Rotation constants<br>cm<sup>-1</sup>",
+        "Vibration frequencies<br>cm<sup>-1</sup>"]);
+    molecules.forEach(function (molecule, id) {
+        //console.log("id=" + id);
+        //console.log("molecule=" + molecule);
+        let energyNumber: number = molecule.getEnergy();
+        let energy: string;
+        if (energyNumber == null) {
+            energy = "";
+        } else {
+            energy = energyNumber.toString();
+        }
+        //console.log("energy=" + energy);
+        let rotationConstants: string = "";
+        let rotConsts: number[] | undefined = molecule.getRotationConstants();
+        if (rotConsts != undefined) {
+            rotationConstants = arrayToString(rotConsts, " ");
+        }
+        let vibrationFrequencies: string = "";
+        let vibFreqs: number[] | undefined = molecule.getVibrationFrequencies();
+        if (vibFreqs != undefined) {
+            vibrationFrequencies = arrayToString(vibFreqs, " ");
+        }
+        moleculesTable += getTR(getTD(id)
+            + getTD(getInput("number", id + "_energy", "setEnergy(this)", energy))
+            + getTD(rotationConstants, true)
+            + getTD(vibrationFrequencies, true));
+    });
+    const moleculesElement = document.getElementById("molecules_table");
+    if (moleculesElement !== null) {
+        moleculesElement.innerHTML = moleculesTable;
+    }
+}
+
+function displayReactionsTable() {
+    if (reactions.size == 0) {
+        return;
+    }
+    // Prepare table headings.
+    let reactionsTable = getTH(["ID", "Reactants", "Products", "Transition State",
+        "PreExponential", "Activation Energy", "TInfinity", "NInfinity"]);
+    reactions.forEach(function (reaction, id) {
+        //console.log("id=" + id);
+        //console.log("reaction=" + reaction);
+        let reactants: string = arrayToString(Array.from(reaction.reactants.keys()), " ");
+        let products: string = arrayToString(Array.from(reaction.products.keys()), " ");
+        let transitionState: string = "";
+        let preExponential: string = "";
+        let activationEnergy: string = "";
+        let tInfinity: string = "";
+        let nInfinity: string = "";
+        if (reaction.transitionState != undefined) {
+            transitionState = reaction.transitionState.getName();
+        }
+        if (reaction.mCRCMethod != undefined) {
+            if (reaction.mCRCMethod instanceof MesmerILT) {
+                if (reaction.mCRCMethod.preExponential != null) {
+                    preExponential = reaction.mCRCMethod.preExponential.value.toString() + " "
+                        + reaction.mCRCMethod.preExponential.attributes.get("units");
+                }
+                if (reaction.mCRCMethod.activationEnergy != null) {
+                    activationEnergy = reaction.mCRCMethod.activationEnergy.value.toString() + " "
+                        + reaction.mCRCMethod.activationEnergy.attributes.get("units");
+                }
+                if (reaction.mCRCMethod.tInfinity != null) {
+                    tInfinity = reaction.mCRCMethod.tInfinity.toString();
+                }
+                if (reaction.mCRCMethod.nInfinity != null) {
+                    nInfinity = reaction.mCRCMethod.nInfinity.value.toString();
+                }
+            } else {
+                if (reaction.mCRCMethod.attributes.get("name") == "RRKM") {
+                } else {
+                    throw new Error("Unexpected mCRCMethod: " + reaction.mCRCMethod);
+                }
+            }
+        }
+        reactionsTable += getTR(getTD(id) + getTD(reactants) + getTD(products) + getTD(transitionState)
+            + getTD(preExponential, true) + getTD(activationEnergy, true) + getTD(tInfinity, true)
+            + getTD(nInfinity, true));
+        const reactionsElement = document.getElementById("reactions_table");
+        if (reactionsElement !== null) {
+            reactionsElement.innerHTML = reactionsTable;
+        }
+    });
+}
 
 /**
  * Set the energy of a molecule when the energy input value is changed.

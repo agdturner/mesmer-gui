@@ -1,4 +1,5 @@
-import {mapToString
+import {
+    mapToString
 } from './functions.js';
 
 import {
@@ -16,7 +17,7 @@ class ReactionMolecule extends Attributes {
      * A reference to the molecule.
      */
     molecule: Molecule;
-    
+
     /**
      * @param {Map<string, string>} attributes The attributes.
      * @param {Molecule} molecule The molecule.
@@ -350,7 +351,8 @@ export class Reaction extends Attributes {
     constructor(attributes: Map<string, string>, id: string,
         reactants: Map<string, Reactant>, products: Map<string, Product>,
         mCRCMethod?: MCRCMethod | undefined,
-        transitionState?: TransitionState | undefined, tunneling?: Tunneling | undefined) {
+        transitionState?: TransitionState | undefined,
+        tunneling?: Tunneling | undefined) {
         super(attributes);
         this.id = id;
         this.reactants = reactants;
@@ -370,8 +372,8 @@ export class Reaction extends Attributes {
             `reactants(${mapToString(this.reactants)}), ` +
             `products(${mapToString(this.products)}), ` +
             `mCRCMethod(${this.mCRCMethod?.toString()}), ` +
-            `tunneling(${this.tunneling?.toString()}), ` +
-            `transitionState(${this.transitionState?.toString()}))`;
+            `transitionState(${this.transitionState?.toString()}), ` +
+            `tunneling(${this.tunneling?.toString()}))`;
     }
 
     /**
