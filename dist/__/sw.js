@@ -117,25 +117,19 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"../manifest.json":[function(require,module,exports) {
-module.exports = {
-  "short_name": "App",
-  "name": "My Awesome App",
-  "icons": [{
-    "src": "/path/to/icons/icon-192x192.png",
-    "type": "image/png",
-    "sizes": "192x192"
-  }, {
-    "src": "/path/to/icons/icon-512x512.png",
-    "type": "image/png",
-    "sizes": "512x512"
-  }],
-  "start_url": "/",
-  "background_color": "#3367D6",
-  "display": "standalone",
-  "scope": "/",
-  "theme_color": "#3367D6"
-};
+})({"../sw.js":[function(require,module,exports) {
+self.addEventListener('install', function (event) {
+  event.waitUntil(caches.open('my-cache').then(function (cache) {
+    return cache.addAll(['/', 'html/index.html', 'dist/client/cjm/client.js', 'dist/client/cjm/classes.js'
+    // etc...
+    ]);
+  }));
+});
+self.addEventListener('fetch', function (event) {
+  event.respondWith(caches.match(event.request).then(function (response) {
+    return response || fetch(event.request);
+  }));
+});
 },{}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -305,5 +299,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../node_modules/parcel-bundler/src/builtins/hmr-runtime.js","../manifest.json"], null)
-//# sourceMappingURL=/__/manifest.js.map
+},{}]},{},["../node_modules/parcel-bundler/src/builtins/hmr-runtime.js","../sw.js"], null)
+//# sourceMappingURL=/__/sw.js.map
