@@ -33,9 +33,29 @@ import {
 import {
     NumberArrayWithAttributes, NumberWithAttributes
 } from './classes.js';
-import { BathGas, Conditions, PTpair } from './conditions.js';
-import { GrainSize, ModelParameters } from './modelParameters.js';
-import { Control, DiagramEnergyOffset } from './control.js';
+
+import {
+    BathGas, Conditions, PTpair
+} from './conditions.js';
+
+import {
+    GrainSize, ModelParameters
+} from './modelParameters.js';
+
+import {
+    Control, DiagramEnergyOffset
+} from './control.js';
+
+// Code for service worker for Progressive Web App (PWA).
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').then(function (registration) {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        }, function (err) {
+            console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+}
 
 //declare var global: any;
 //const globalScope = (typeof global !== 'undefined') ? global : window;
@@ -541,7 +561,7 @@ function parse(xml: XMLDocument) {
 }
 
 let conditions: Conditions;
-    
+
 /**
  * Parse xml to initialise conditions.
  * @param {XMLDocument} xml The XML document.
@@ -642,7 +662,7 @@ function initControl(xml: XMLDocument): void {
         printGrainDOS = true;
     }
     // me:printCellDOS
-    let xml_printCellDOS: HTMLCollectionOf<Element> = xml_control.getElementsByTagName('me:printCellDOS');  
+    let xml_printCellDOS: HTMLCollectionOf<Element> = xml_control.getElementsByTagName('me:printCellDOS');
     let printCellDOS: boolean | undefined;
     if (xml_printCellDOS.length > 0) {
         printCellDOS = true;
@@ -679,7 +699,7 @@ function initControl(xml: XMLDocument): void {
     }
     // me:eigenvalues
     let xml_eigenvalues: HTMLCollectionOf<Element> = xml_control.getElementsByTagName('me:eigenvalues');
-    let  eigenvalues: number | undefined;
+    let eigenvalues: number | undefined;
     if (xml_eigenvalues.length > 0) {
         eigenvalues = parseFloat(getNodeValue(getFirstChildNode(xml_eigenvalues[0])));
     }
@@ -1077,7 +1097,7 @@ function drawReactionDiagram(canvas: HTMLCanvasElement, molecules: Map<string, M
 /**
  * Display molecules table.
  */
-function displayMoleculesTable() : void {
+function displayMoleculesTable(): void {
     if (molecules.size == 0) {
         return;
     }
@@ -1205,11 +1225,11 @@ function displayReactionsDiagram(): void {
  * Display conditions.
  */
 function displayConditions(): void {
-    let bathGas_element : HTMLElement | null = document.getElementById("bathGas");
+    let bathGas_element: HTMLElement | null = document.getElementById("bathGas");
     if (bathGas_element != null) {
         bathGas_element.innerHTML = "Bath Gas " + conditions.bathGas.molecule.getID();
     }
-    let PTs_element : HTMLElement | null = document.getElementById("PT_table");
+    let PTs_element: HTMLElement | null = document.getElementById("PT_table");
     let table: string = getTH(["P", "T"]);
     if (PTs_element != null) {
         conditions.pTs.forEach(function (pTpair) {
@@ -1223,10 +1243,10 @@ function displayConditions(): void {
  * Display modelParameters.
  */
 function displayModelParameters(): void {
-    let modelParameters_element : HTMLElement | null = document.getElementById("modelParameters_table");
+    let modelParameters_element: HTMLElement | null = document.getElementById("modelParameters_table");
     let table: string = getTH(["Parameter", "Value"]);
-        table += getTR(getTD("Grain Size") + getTD(modelParameters.grainSize.value.toString()));
-        table += getTR(getTD("Energy Above The Top Hill") + getTD(modelParameters.energyAboveTheTopHill.toString()));
+    table += getTR(getTD("Grain Size") + getTD(modelParameters.grainSize.value.toString()));
+    table += getTR(getTD("Energy Above The Top Hill") + getTD(modelParameters.energyAboveTheTopHill.toString()));
 
     if (modelParameters_element != null) {
         modelParameters_element.innerHTML = table;
@@ -1237,7 +1257,7 @@ function displayModelParameters(): void {
  * Display control.
  */
 function displayControl(): void {
-    let control_table_element : HTMLElement | null = document.getElementById("control_table");
+    let control_table_element: HTMLElement | null = document.getElementById("control_table");
     let table: string = getTH(["Control", "Value"]);
     if (control.testDOS != undefined) {
         table += getTR(getTD("me.testDOS") + getTD(""));
@@ -1349,7 +1369,7 @@ window.saveXML = function () {
     let xml_control: string = control.toXML(pad, pad);
 
     // Create a new Blob object from the data
-    let blob = new Blob([header, mesmerStartTag, title_xml, moleculeList, reactionList, 
+    let blob = new Blob([header, mesmerStartTag, title_xml, moleculeList, reactionList,
         xml_conditions, xml_modelParameters, xml_control, mesmerEndTag],
         { type: "text/plain" });
 
