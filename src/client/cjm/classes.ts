@@ -1,4 +1,10 @@
-import { getTag } from "./xml";
+import { 
+    getSelfClosingTag 
+} from "./html";
+
+import {
+    getTag
+} from "./xml";
 
 /**
  * A class for representing things with attributes.
@@ -21,9 +27,11 @@ export abstract class Attributes {
     /**
      * @returns The name in lower case.
      */
+    /*
     get name(): string {
         return this.constructor.name.toLowerCase().trim();
     }
+    */
 
     /**
      * @returns A string representation.
@@ -37,29 +45,27 @@ export abstract class Attributes {
     }
 
     /**
-     * Get the tag representation of the atom.
-     * @param pad The padding (Optional).
-     * @returns A tag representation of the atom.
+     * Get the tag representation.
+     * @param {string} tagName The tag name.
+     * @param {string} padding The padding (Optional).
+     * @returns A tag representation.
      */
-    toTag(pad?: string): string {
-        let s: string = `<${this.name}`;
-        this.attributes.forEach((value, key) => {
-            s += ` ${key}="${value}"`;
-        });
-        s += ` />`;
-        if (pad) {
-            return "\n" + pad + s;
+    toTag(tagName: string, padding?: string): string {
+        let s = getSelfClosingTag(this.attributes, tagName);
+        if (padding) {
+            return "\n" + padding + s;
         }
         return "\n" + s;
     }
 
     /**
      * Get the XML representation.
-     * @param padding The padding (Optional).
+     * @param {string} tagName The tag name.
+     * @param {string} padding The padding (Optional).
      * @returns An XML representation.
      */
-    toXML(padding?: string): string {
-        return getTag("", this.name, this.attributes, undefined, undefined, padding, false);
+    toXML(tagName: string, padding?: string): string {
+        return getTag("", tagName, this.attributes, undefined, undefined, padding, false);
     }
 }
 

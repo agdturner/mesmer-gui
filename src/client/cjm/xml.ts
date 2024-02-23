@@ -126,7 +126,7 @@ export function getTag(content: string, tagName: string, attributes?: Map<string
  * @param {Element} element The element to get the attributes of.
  * @returns {Map<string, string>} The attributes of the element.
  */
-export function getAttributes(element: Element): Map<string, string> {    
+export function getAttributes(element: Element): Map<string, string> {
     let attributeNames: string[] = element.getAttributeNames();
     let attributes: Map<string, string> = new Map();
     attributeNames.forEach(function (attributeName) {
@@ -137,4 +137,31 @@ export function getAttributes(element: Element): Map<string, string> {
         }
     });
     return attributes;
+}
+
+/**
+ * Get an XML element checking that it is the only one with a given tagName.
+ * @param {XMLDocument | Element} xml The XML document or element.
+ * @param {string} tagName The tag name.
+ * @returns {Element} The element.
+ * @throws An error if there is not exactly one element with the given tag name.
+ */
+export function getSingularElement(xml: XMLDocument | Element, tagName: string): Element {;
+    let e: HTMLCollectionOf<Element> = xml.getElementsByTagName(tagName);
+    if (e.length != 1) {
+        throw new Error("Expecting 1 " + tagName + " but finding " + e.length);
+    }
+    return e[0];
+}
+
+/**
+ * Convert XML to HTML.
+ * @param {string} text The XML text.
+ */
+export function toHTML(text: string): string {
+    return text.replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\n/g, "<br>")
+        .replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;")
+        .replace(/  /g, "&nbsp;&nbsp;");
 }

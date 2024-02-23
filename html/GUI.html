@@ -31,31 +31,50 @@
   <input type="file" id="filePicker" style="display: none;" />
 -->
 
-<div id="controls">
-  <button id="loadButton" type="button" onclick="loadXML()">Load</button>
-  <button id="saveButton" type="button" style="display:none" onclick="saveXML()">Save</button>
-</div>
+  <div id="controls">
+    <button id="loadButton" type="button" onclick="loadXML()">Load</button>
+    <button id="saveButton" type="button" style="display:none" onclick="saveXML()">Save</button>
+  </div>
 
-  <!-- Main heading. -->
-  <h1 id="h1"></h1>
+  <!-- Title -->
+  <h1 id="title"></h1>
 
-  <!-- Display table for molecules. -->
+  <!-- Molecules -->
   <div id="molecules">
     <h2 id="molecules_title"></h2>
     <table id="molecules_table"></table>
   </div>
 
-  <!-- Display table for reactions. -->
+  <!-- Reactions -->
   <div id="reactions">
     <h2 id="reactions_title"></h2>
     <h3 id="reactions_table_title"></h3>
     <table id="reactions_table"></table>
-    <!-- Display Well Diagram. -->
+    <!-- Display Reactions Diagram. -->
     <h3 id="reactions_diagram_title"></h3>
     <canvas id="reactions_diagram" width="800" height="400" style="border:1px solid black; display:none"></canvas>
   </div>
 
-  <!-- The XML being parsed. -->
+  <!-- Conditions -->
+  <div id="conditions">
+    <h2 id="conditions_title"></h2>
+    <p id="bathGas"></p>
+    <table id="PT_table"></table>
+  </div>
+
+  <!-- Model Parameters -->
+  <div id="modelParameters">
+    <h2 id="modelParameters_title"></h2>
+    <table id="modelParameters_table"></table>
+  </div>
+
+  <!-- Control -->
+  <div id="control">
+    <h2 id="control_title"></h2>
+    <table id="control_table"></table>
+  </div>
+
+  <!-- XML -->
   <div id="xml">
     <h2 id="xml_title"></h2>
     <p id="xml_text"></p>

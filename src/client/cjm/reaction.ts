@@ -6,12 +6,18 @@ import {
     Molecule
 } from './molecule.js';
 
-import { Attributes, NumberWithAttributes } from './classes.js';
+import {
+    Attributes, NumberWithAttributes
+} from './classes.js';
+
+import {
+    getTag
+} from './xml.js';
 
 /**
  * A class for representing a Reaction Molecule.
  */
-class ReactionMolecule extends Attributes {
+export class ReactionMolecule extends Attributes {
 
     /**
      * A reference to the molecule.
@@ -25,6 +31,22 @@ class ReactionMolecule extends Attributes {
     constructor(attributes: Map<string, string>, molecule: Molecule) {
         super(attributes);
         this.molecule = molecule;
+    }
+
+    /**
+     * Get the XML representation.
+     * @param {string} tagName The tag name.
+     * @param {string} pad The pad for an extra level of padding (Optional).
+     * @param {string} padding The padding (Optional).
+     * @returns An XML representation.
+     */
+    toXML(tagName: string, pad?: string | undefined, padding?: string | undefined): string {
+        let padding1: string = "";
+        if (pad != undefined && padding != undefined) {
+            padding1 = padding + pad;
+        }
+        let s: string = this.toTag("molecule", padding1);
+        return getTag(s, tagName, undefined, undefined, undefined, padding, true);
     }
 }
 
@@ -56,6 +78,7 @@ export class Product extends ReactionMolecule {
     constructor(attributes: Map<string, string>, molecule: Molecule) {
         super(attributes, molecule);
     }
+
 }
 
 /**
@@ -72,11 +95,15 @@ export class TransitionState extends ReactionMolecule {
     }
 
     /**
-     * A convenience method to get the name of the transition state.
-     * @returns {string} The name of the transition state.
+     * A convenience method to get the ref (the molecule ID) of the transition state.
+     * @returns The ref of the transition state.
      */
-    getName(): string {
-        return this.molecule.id;
+    getRef(): string {
+        let s: string | undefined = this.attributes.get("ref");
+        if (s == null) {
+            throw new Error('Attribute "ref" is undefined.');
+        }
+        return s;
     }
 }
 
@@ -112,6 +139,20 @@ export class ActivationEnergy extends NumberWithAttributes {
 }
 
 /**
+ * A class for representing the reference temperature.
+ */
+export class TInfinity extends NumberWithAttributes {
+
+    /**
+     * @param {Map<string, string>} attributes The attributes. 
+     * @param {number} value The value of the factor.
+     */
+    constructor(attributes: Map<string, string>, value: number) {
+        super(attributes, value);
+    }
+}
+
+/**
  * A class for representing the modified Arrhenius parameter factor.
  */
 export class NInfinity extends NumberWithAttributes {
@@ -122,6 +163,19 @@ export class NInfinity extends NumberWithAttributes {
      */
     constructor(attributes: Map<string, string>, value: number) {
         super(attributes, value);
+    }
+}
+
+/**
+ * A class for representing tunneling.
+ */
+export class Tunneling extends Attributes {
+    
+    /**
+     * @param {Map<string, string>} attributes The attributes.
+     */
+    constructor(attributes: Map<string, string>) {
+        super(attributes);
     }
 }
 
@@ -153,20 +207,36 @@ export class MCRCMethod extends Attributes {
  * A class for representing the inverse Laplace transform (ILT) type of microcanonical rate constant.
  */
 export class MesmerILT extends MCRCMethod {
-    preExponential: PreExponential | undefined;;
+
+    /**
+     * The pre-exponential factor.
+     */
+    preExponential: PreExponential | undefined;
+    
+    /**
+     * The activation energy.
+     */
     activationEnergy: ActivationEnergy | undefined;
-    tInfinity: number | undefined;
+    
+    /**
+     * The TInfinity.
+     */
+    tInfinity: TInfinity | undefined;
+    
+    /**
+     * The nInfinity.
+     */
     nInfinity: NInfinity | undefined;
 
     /**
      * @param {Map<string, string>} attributes The attributes.
      * @param {PreExponential | undefined} preExponential The pre-exponential factor.
      * @param {ActivationEnergy | undefined} activationEnergy The activation energy.
-     * @param {number | undefined} tInfinity The TInfinity.
+     * @param {TInfinity | undefined} tInfinity The TInfinity.
      * @param {NInfinity | undefined} nInfinity The nInfinity.
      */
     constructor(attributes: Map<string, string>, preExponential: PreExponential | undefined,
-        activationEnergy: ActivationEnergy | undefined, tInfinity: number | undefined,
+        activationEnergy: ActivationEnergy | undefined, tInfinity: TInfinity | undefined,
         nInfinity: NInfinity | undefined) {
         super(attributes, "MesmerILT");
         this.preExponential = preExponential;
@@ -181,6 +251,37 @@ export class MesmerILT extends MCRCMethod {
             `activationEnergy(${this.activationEnergy}), ` +
             `TInfinity(${this.tInfinity}), ` +
             `nInfinity(${this.nInfinity}))`;
+    }
+
+    /**
+     * Get the XML representation.
+     * @param {string} tagName The tag name.
+     * @param {string} padding The padding (Optional).
+     * @returns An XML representation.
+     */
+    override toXML(tagName: string, padding?: string | undefined): string {
+        let padding1: string = "";
+        if (padding != undefined) {
+            padding1 = padding + "  ";
+        }
+        let preExponential_xml: string = "";
+        if (this.preExponential != undefined) {
+            preExponential_xml = this.preExponential.toXML("me.preExponential", padding1);
+        }
+        let activationEnergy_xml: string = "";
+        if (this.activationEnergy != undefined) {
+            activationEnergy_xml = this.activationEnergy.toXML("me.activationEnergy", padding1);
+        }
+        let tInfinity_xml: string = "";
+        if (this.tInfinity != undefined) {
+            tInfinity_xml = this.tInfinity.toXML("me.nInfinity", padding1);
+        }
+        let nInfinity_xml: string = "";
+        if (this.nInfinity != undefined) {
+            nInfinity_xml = this.nInfinity.toXML("me.nInfinity", padding1);
+        }
+        return getTag(preExponential_xml + activationEnergy_xml + tInfinity_xml + nInfinity_xml,
+            tagName, this.attributes, undefined, undefined, padding, true);
     }
 }
 
@@ -418,11 +519,12 @@ export class Reaction extends Attributes {
     }
 
     /**
+     * @param {string} tagName The tag name.
      * @param {string} pad The pad (Optional).
      * @param {number} level The level of padding (Optional).
      * @returns An XML representation.
      */
-    toXML(pad?: string, level?: number): string {
+    toXML(tagName: string, pad?: string, level?: number): string {
         // Padding
         let padding0: string = "";
         let padding1: string = "";
@@ -434,70 +536,36 @@ export class Reaction extends Attributes {
             padding2 = padding1 + pad;
             padding3 = padding2 + pad;
         }
-        /*
-        // Atoms
-        let atoms_xml: string = "";
-        for (let atom of this.atoms.values()) {
-            atoms_xml += atom.toTag(padding2);
+        // Reactants
+        let reactants_xml: string = "";
+        this.reactants.forEach(reactant => {
+            reactants_xml += reactant.toXML("reactant", pad, padding1);
+        });
+        // Products
+        let products_xml: string = "";
+        this.products.forEach(product => {
+            products_xml += product.toXML("product", pad, padding1);
+        });
+        // Tunneling
+        let tunneling_xml: string = "";
+        if (this.tunneling != undefined) {
+            tunneling_xml = this.tunneling.toTag("me.tunneling", padding1);
         }
-        if (this.atoms.size > 1) {
-            if (atoms_xml != "") {
-                atoms_xml = getTag(atoms_xml, "atomArray", undefined, undefined, undefined, padding1, true);
-            }
+        // TransitionState
+        let transitionState_xml: string = "";
+        if (this.transitionState != undefined) {
+            transitionState_xml = this.transitionState.toXML("transitionState", pad, padding1);
         }
-        // Bonds
-        let bonds_xml: string = "";
-        for (let bond of this.bonds.values()) {
-            bonds_xml += bond.toTag(padding2);
-        }
-        if (bonds_xml != "") {
-            bonds_xml = getTag(bonds_xml, "bondArray", undefined, undefined, undefined, padding1, true);
-        }
-        // Properties
-        let properties_xml: string = "";
-        for (let [key, value] of this.properties) {
-            let property_xml: string = "";
-            if (value instanceof PropertyScalar) {
-                property_xml += value.toXML(padding3);
+        // MCRCMethod
+        let mCRCMethod_xml: string = "";
+        if (this.mCRCMethod != undefined) {
+            if (this.mCRCMethod instanceof MesmerILT) {
+                mCRCMethod_xml = this.mCRCMethod.toXML("mCRCMethod", padding1);
             } else {
-                property_xml += (value as PropertyArray).toXML(padding3);
+                mCRCMethod_xml = this.mCRCMethod.toTag("mCRCMethod", padding1);
             }
-            properties_xml += getTag(property_xml, "property", undefined, undefined, undefined, padding2, true);
         }
-        properties_xml = getTag(properties_xml, "propertyList", undefined, undefined, undefined, padding1, true);
-        // EnergyTransferModel
-        let energyTransferModel_xml: string = "";
-        if (this.energyTransferModel) {
-            energyTransferModel_xml = this.energyTransferModel.toXML(pad, padding1);
-        }
-        // DOSCMethod
-        let dOSCMethod_xml: string = "";
-        if (this.dOSCMethod) {
-            dOSCMethod_xml = this.dOSCMethod.toTag(padding1);
-        }
-        // Molecule
-        let attributes: Map<string, string> = new Map();
-        attributes.set("id", this.id);
-        if (this.description != null) {
-            attributes.set("description", this.description);
-        }
-        return getTag(atoms_xml + bonds_xml + properties_xml + energyTransferModel_xml + dOSCMethod_xml,
-            "molecule", attributes, undefined, undefined, padding0, true);
-            */
-        return "";
-    }
-}
-
-/**
- * A class for representing a tunneling.
- * @param {string} name The name of the tunneling.
- */
-export class Tunneling {
-    name: string;
-    constructor(name: string) {
-        this.name = name;
-    }
-    toString() {
-        return `tunneling(name(${this.name}))`;
+        return getTag(reactants_xml + products_xml + tunneling_xml + transitionState_xml + mCRCMethod_xml,
+            tagName, this.attributes, undefined, undefined, padding0, true);
     }
 }

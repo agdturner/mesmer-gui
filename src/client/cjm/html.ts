@@ -84,3 +84,18 @@ export function getInput(type: string, id: string | null, func: string | null,
     }
     return r + ">";
 }
+
+/**
+ * Create a self closing tag.
+ * @param {Map<string, string> | null} attributes The attributes.
+ * @param {string} tagName The tag name.
+ */
+export function getSelfClosingTag(attributes: Map<string, string> | null, tagName: string): string {
+    let s: string = "<" + tagName;
+    if (attributes) {
+        for (let [key, value] of attributes) {
+            s += " " + key + "=\"" + value + "\"";
+        }
+    }
+    return s + " />";
+}

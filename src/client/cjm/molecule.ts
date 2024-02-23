@@ -1,14 +1,14 @@
-import { Attributes, NumberArrayWithAttributes, NumberWithAttributes } from './classes.js';
+import {
+    Attributes, NumberArrayWithAttributes, NumberWithAttributes 
+} from './classes.js';
 
 import {
-    arrayToString, mapToString
+    mapToString
 } from './functions.js';
 
 import {
     getTag
 } from './xml.js';
-
-import { get } from 'http';
 
 /**
  * A class for representing an atom.
@@ -119,9 +119,9 @@ export class Property extends Attributes {
             }
         }
         if (this.property instanceof NumberWithAttributes) {
-            return getTag(this.property.toXML("scalar", padding1), this.name, this.attributes, undefined, undefined, padding, true);
+            return getTag(this.property.toXML("scalar", padding1), "property", this.attributes, undefined, undefined, padding, true);
         } else {
-            return getTag(this.property.toXML("array", padding1), this.name, this.attributes, undefined, undefined, padding, true);
+            return getTag(this.property.toXML("array", padding1), "property", this.attributes, undefined, undefined, padding, true);
         }
     }
 }
@@ -387,11 +387,12 @@ export class Molecule extends Attributes {
     }
 
     /**
+     * @param {string} tagName The tag name.
      * @param {string} pad The pad (Optional).
      * @param {number} level The level of padding (Optional).
      * @returns An XML representation.
      */
-    toXML(pad?: string, level?: number): string {
+    toXML(tagName: string, pad?: string, level?: number): string {
         // Padding
         let padding0: string = "";
         let padding1: string = "";
@@ -406,7 +407,7 @@ export class Molecule extends Attributes {
         // Atoms
         let atoms_xml: string = "";
         for (let atom of this.atoms.values()) {
-            atoms_xml += atom.toTag(padding2);
+            atoms_xml += atom.toTag("atom", padding2);
         }
         if (this.atoms.size > 1) {
             if (atoms_xml != "") {
@@ -416,7 +417,7 @@ export class Molecule extends Attributes {
         // Bonds
         let bonds_xml: string = "";
         for (let bond of this.bonds.values()) {
-            bonds_xml += bond.toTag(padding2);
+            bonds_xml += bond.toTag("bond", padding2);
         }
         if (bonds_xml != "") {
             bonds_xml = getTag(bonds_xml, "bondArray", undefined, undefined, undefined, padding1, true);
@@ -448,6 +449,6 @@ export class Molecule extends Attributes {
             dOSCMethod_xml = this.dOSCMethod.toTag(padding1);
         }
         return getTag(atoms_xml + bonds_xml + properties_xml + energyTransferModel_xml + dOSCMethod_xml,
-            "molecule", this.attributes, undefined, undefined, padding0, true);
+            tagName, this.attributes, undefined, undefined, padding0, true);
     }
 }
