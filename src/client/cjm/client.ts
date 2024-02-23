@@ -1340,13 +1340,13 @@ window.saveXML = function () {
     reactionList = getTag(reactionList, "reactionList", undefined, undefined, undefined, pad, true);
 
     // Create me.Conditions
-    let xml_conditions: string = conditions.toXML(pad, padding2);
+    let xml_conditions: string = conditions.toXML(pad, pad);
 
     // Create modelParameters
-    let xml_modelParameters: string = modelParameters.toXML(pad, padding2);
+    let xml_modelParameters: string = modelParameters.toXML(pad, pad);
 
     // create me.control
-    let xml_control: string = control.toXML(pad, padding2);
+    let xml_control: string = control.toXML(pad, pad);
 
     // Create a new Blob object from the data
     let blob = new Blob([header, mesmerStartTag, title_xml, moleculeList, reactionList, 
