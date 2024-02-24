@@ -49,8 +49,8 @@ import {
 // Code for service worker for Progressive Web App (PWA).
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-        const swUrl = new URL('../../../sw.js', import.meta.url);
-        //const swUrl = new URL('../../../sw.js', document.baseURI);
+        //const swUrl = new URL('../../../sw.js', import.meta.url);
+        const swUrl = new URL('../../../sw.js', document.baseURI);
         navigator.serviceWorker.register(swUrl);
     });
 }
