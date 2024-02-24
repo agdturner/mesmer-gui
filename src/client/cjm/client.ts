@@ -49,6 +49,14 @@ import {
 // Code for service worker for Progressive Web App (PWA).
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
+        const swUrl = new URL('../../../sw.js', import.meta.url);
+        //const swUrl = new URL('../../../sw.js', document.baseURI);
+        navigator.serviceWorker.register(swUrl);
+    });
+}
+/*  
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
         navigator.serviceWorker.register('../../../sw.js').then(function (registration) {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
         }, function (err) {
@@ -56,6 +64,7 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
+*/
 
 //declare var global: any;
 //const globalScope = (typeof global !== 'undefined') ? global : window;

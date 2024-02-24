@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "es2020",
     "outDir": "dist/client/cjm",
     "rootDir": "src/client/cjm",
   },

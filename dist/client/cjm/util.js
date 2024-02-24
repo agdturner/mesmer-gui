@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.rescale = exports.get = void 0;
 /**
  * Thow an error if the key is not in the map otherwise return the value mapped to the key.
  * @param map The map to search in.
@@ -8,13 +5,12 @@ exports.rescale = exports.get = void 0;
  * @returns The value mapped to the key.
  * @throws An error if the key is not in the map.
  */
-function get(map, key) {
+export function get(map, key) {
     if (!map.has(key)) {
         throw new Error(`Key ${key} not found in map`);
     }
     return map.get(key);
 }
-exports.get = get;
 /**
  * Linearly rescale a value from one range to another.
  * @param min The minimum value of the original range.
@@ -24,10 +20,9 @@ exports.get = get;
  * @param value The value to rescale.
  * @returns The rescaled value.
  */
-function rescale(min, range, newMin, newRange, value) {
+export function rescale(min, range, newMin, newRange, value) {
     // The + 0.0 is to force the division to be a floating point division.
     //return (((value - min) / (range + 0.0)) * (newRange)) + newMin;
     return ((value - min) * (newRange) / (range + 0.0)) + newMin;
 }
-exports.rescale = rescale;
 //# sourceMappingURL=util.js.map
