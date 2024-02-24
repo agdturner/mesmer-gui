@@ -2,12 +2,23 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import { XMLValidator, XMLParser } from 'fast-xml-parser';
-import { parseXml } from 'libxmljs/dist/lib/parse.js';
-import Bundler from 'parcel-bundler';
+import { default as Parcel } from "@parcel/core";
+//import { parseXml } from 'libxmljs/dist/lib/parse.js';
+//import Bundler from 'parcel-bundler';
+import { parseXml } from 'libxmljs';
 import fs from 'fs';
 
+
 const app = express();
-const bundler = new Bundler('./html/GUI.html');
+
+const bundler = new Parcel({
+    entries: './html/GUI.html',
+    // Add any other options you need
+});
+
+//app.use(parcelMiddleware(bundler));
+
+//const bundler = new Bundler('./html/GUI.html');
 
 // Middleware to parse text/xml body
 app.use(bodyParser.text({ type: 'text/xml' }));
@@ -25,7 +36,7 @@ app.post('/', (req, res) => {
 });
 
 // Use parcel-bundler middleware to serve bundled files
-app.use(bundler.middleware());
+//app.use(bundler.middleware());
 
 app.listen(1234, () => {
     console.log('Server running at http://localhost:1234');

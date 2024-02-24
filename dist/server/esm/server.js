@@ -6,11 +6,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const fast_xml_parser_1 = require("fast-xml-parser");
-const parse_js_1 = require("libxmljs/dist/lib/parse.js");
-const parcel_bundler_1 = __importDefault(require("parcel-bundler"));
+const core_1 = __importDefault(require("@parcel/core"));
+//import { parseXml } from 'libxmljs/dist/lib/parse.js';
+//import Bundler from 'parcel-bundler';
+const libxmljs_1 = require("libxmljs");
 const fs_1 = __importDefault(require("fs"));
 const app = (0, express_1.default)();
-const bundler = new parcel_bundler_1.default('./html/GUI.html');
+const bundler = new core_1.default({
+    entries: './html/GUI.html',
+    // Add any other options you need
+});
+//app.use(parcelMiddleware(bundler));
+//const bundler = new Bundler('./html/GUI.html');
 // Middleware to parse text/xml body
 app.use(body_parser_1.default.text({ type: 'text/xml' }));
 app.post('/', (req, res) => {
@@ -23,7 +30,7 @@ app.post('/', (req, res) => {
     res.send('XML data received is valid: ' + isValid);
 });
 // Use parcel-bundler middleware to serve bundled files
-app.use(bundler.middleware());
+//app.use(bundler.middleware());
 app.listen(1234, () => {
     console.log('Server running at http://localhost:1234');
 });
@@ -42,7 +49,7 @@ function loadXSD(xsdFile) {
     console.log(`Loading XSD file: ${xsdFile}`);
     let xsd = fs_1.default.readFileSync(xsdFile, 'utf8').trim();
     try {
-        (0, parse_js_1.parseXml)(xsd);
+        (0, libxmljs_1.parseXml)(xsd);
         console.log(`XSD parsed`);
     }
     catch (error) {
@@ -71,9 +78,9 @@ for (const xsdData of importedXsdData) {
 // Check fullXsdData parses.
 */
     //const xsdDoc = parseXml(mesmer_xsd, { baseUrl: "'./data/schemas/" });
-    const xsdDoc = (0, parse_js_1.parseXml)(mesmer_xsd);
+    const xsdDoc = (0, libxmljs_1.parseXml)(mesmer_xsd);
     console.log(`XSD parsed`);
-    const xmlDoc = (0, parse_js_1.parseXml)(xmlData);
+    const xmlDoc = (0, libxmljs_1.parseXml)(xmlData);
     console.log(`XML parsed`);
     fast_xml_parser_1.XMLValidator;
     // Validate XML against XSD

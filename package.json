@@ -25,7 +25,9 @@
   "devDependencies": {
     "@parcel/packager-raw-url": "^2.11.0",
     "@parcel/transformer-webmanifest": "^2.11.0",
-    "@types/node": "^20.11.0"
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.0",
+    "parcel": "^2.11.0"
   },
   "description": "GUI for visualising and editing MESMER XML input/output files.",
   "keywords": [
