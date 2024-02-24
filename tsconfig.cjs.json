@@ -2,20 +2,12 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "esnext",
-    "module": "esnext",
+    "module": "es2020",
     "outDir": "dist/client/cjm",
     "rootDir": "src/client/cjm",
   },
   "include": [
-    "src/client/cjm/util.ts",
-    "src/client/cjm/xml.ts",
-    "src/client/cjm/functions.ts",
-    "src/client/cjm/molecule.ts",
-    "src/client/cjm/reaction.ts",
-    "src/client/cjm/experiment.ts",
-    "src/client/cjm/html.ts",
-    "src/client/cjm/canvas.ts",
-    "src/client/cjm/client.ts"
+    "src/client/cjm/*.ts"
   ],
   "exclude": [
     "dist/client/cjm"
