@@ -1,10 +1,13 @@
-import { mapToString } from './functions.js';
-import { Attributes, NumberWithAttributes } from './classes.js';
-import { getTag } from './xml.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Reaction = exports.ZhuNakamuraCrossing = exports.MesmerILT = exports.MCRCMethod = exports.Tunneling = exports.NInfinity = exports.TInfinity = exports.ActivationEnergy = exports.PreExponential = exports.TransitionState = exports.Product = exports.Reactant = exports.ReactionMolecule = void 0;
+const functions_js_1 = require("./functions.js");
+const classes_js_1 = require("./classes.js");
+const xml_js_1 = require("./xml.js");
 /**
  * A class for representing a Reaction Molecule.
  */
-export class ReactionMolecule extends Attributes {
+class ReactionMolecule extends classes_js_1.Attributes {
     /**
      * A reference to the molecule.
      */
@@ -30,14 +33,15 @@ export class ReactionMolecule extends Attributes {
             padding1 = padding + pad;
         }
         let s = this.toTag("molecule", padding1);
-        return getTag(s, tagName, undefined, undefined, undefined, padding, true);
+        return (0, xml_js_1.getTag)(s, tagName, undefined, undefined, undefined, padding, true);
     }
 }
+exports.ReactionMolecule = ReactionMolecule;
 /**
  * A class for representing a reactant.
  * This is a molecule often with a role in a reaction.
  */
-export class Reactant extends ReactionMolecule {
+class Reactant extends ReactionMolecule {
     /**
      * @param {Map<string, string>} attributes The attributes.
      * @param {Molecule} molecule The molecule.
@@ -46,11 +50,12 @@ export class Reactant extends ReactionMolecule {
         super(attributes, molecule);
     }
 }
+exports.Reactant = Reactant;
 /**
  * A class for representing a product.
  * This is a molecule produced in a reaction.
  */
-export class Product extends ReactionMolecule {
+class Product extends ReactionMolecule {
     /**
      * @param {Map<string, string>} attributes The attributes.
      * @param {Molecule} molecule The molecule.
@@ -59,10 +64,11 @@ export class Product extends ReactionMolecule {
         super(attributes, molecule);
     }
 }
+exports.Product = Product;
 /**
  * A class for representing a transition state.
  */
-export class TransitionState extends ReactionMolecule {
+class TransitionState extends ReactionMolecule {
     /**
      * @param {Map<string, string>} attributes The attributes.
      * @param {Molecule} molecule The molecule.
@@ -82,10 +88,11 @@ export class TransitionState extends ReactionMolecule {
         return s;
     }
 }
+exports.TransitionState = TransitionState;
 /**
  * A class for representing the Arrhenius pre-exponential factor.
  */
-export class PreExponential extends NumberWithAttributes {
+class PreExponential extends classes_js_1.NumberWithAttributes {
     /**
      * A class for representing the Arrhenius pre-exponential factor.
      * @param {Map<string, string>} attributes The attributes.
@@ -95,10 +102,11 @@ export class PreExponential extends NumberWithAttributes {
         super(attributes, value);
     }
 }
+exports.PreExponential = PreExponential;
 /**
  * A class for representing the Arrhenius activation energy factor.
  */
-export class ActivationEnergy extends NumberWithAttributes {
+class ActivationEnergy extends classes_js_1.NumberWithAttributes {
     /**
      * A class for representing the Arrhenius pre-exponential factor.
      * @param {Map<string, string>} attributes The attributes.
@@ -108,10 +116,11 @@ export class ActivationEnergy extends NumberWithAttributes {
         super(attributes, value);
     }
 }
+exports.ActivationEnergy = ActivationEnergy;
 /**
  * A class for representing the reference temperature.
  */
-export class TInfinity extends NumberWithAttributes {
+class TInfinity extends classes_js_1.NumberWithAttributes {
     /**
      * @param {Map<string, string>} attributes The attributes.
      * @param {number} value The value of the factor.
@@ -120,10 +129,11 @@ export class TInfinity extends NumberWithAttributes {
         super(attributes, value);
     }
 }
+exports.TInfinity = TInfinity;
 /**
  * A class for representing the modified Arrhenius parameter factor.
  */
-export class NInfinity extends NumberWithAttributes {
+class NInfinity extends classes_js_1.NumberWithAttributes {
     /**
      * @param {Map<string, string>} attributes The attributes.
      * @param {number} value The value of the factor.
@@ -132,10 +142,11 @@ export class NInfinity extends NumberWithAttributes {
         super(attributes, value);
     }
 }
+exports.NInfinity = NInfinity;
 /**
  * A class for representing tunneling.
  */
-export class Tunneling extends Attributes {
+class Tunneling extends classes_js_1.Attributes {
     /**
      * @param {Map<string, string>} attributes The attributes.
      */
@@ -143,11 +154,12 @@ export class Tunneling extends Attributes {
         super(attributes);
     }
 }
+exports.Tunneling = Tunneling;
 /**
  * A class for representing the MCRCMethod specifications.
  * Extended classes indicate how microcanonical rate constant is to be treated.
  */
-export class MCRCMethod extends Attributes {
+class MCRCMethod extends classes_js_1.Attributes {
     /**
      * The name of the method.
      */
@@ -164,10 +176,11 @@ export class MCRCMethod extends Attributes {
         return `MCRCMethod(name(${this.mCRCMethodName}))`;
     }
 }
+exports.MCRCMethod = MCRCMethod;
 /**
  * A class for representing the inverse Laplace transform (ILT) type of microcanonical rate constant.
  */
-export class MesmerILT extends MCRCMethod {
+class MesmerILT extends MCRCMethod {
     /**
      * The pre-exponential factor.
      */
@@ -232,13 +245,14 @@ export class MesmerILT extends MCRCMethod {
         if (this.nInfinity != undefined) {
             nInfinity_xml = this.nInfinity.toXML("me.nInfinity", padding1);
         }
-        return getTag(preExponential_xml + activationEnergy_xml + tInfinity_xml + nInfinity_xml, tagName, this.attributes, undefined, undefined, padding, true);
+        return (0, xml_js_1.getTag)(preExponential_xml + activationEnergy_xml + tInfinity_xml + nInfinity_xml, tagName, this.attributes, undefined, undefined, padding, true);
     }
 }
+exports.MesmerILT = MesmerILT;
 /**
  * A class for representing the Zhu-Nakamura crossing MCRCMethod.
  */
-export class ZhuNakamuraCrossing extends MCRCMethod {
+class ZhuNakamuraCrossing extends MCRCMethod {
     harmonicReactantDiabat_FC;
     harmonicReactantDiabat_XO;
     harmonicProductDiabat_DE;
@@ -273,6 +287,7 @@ export class ZhuNakamuraCrossing extends MCRCMethod {
             `exponentialProductDiabat_DE(${this.exponentialProductDiabat_DE.toString()}))`;
     }
 }
+exports.ZhuNakamuraCrossing = ZhuNakamuraCrossing;
 /**
  * A class for representing the sum of states.
  * @param {string} units The units of energy.
@@ -347,7 +362,7 @@ export class DefinedSumOfStates extends MCRCMethod {
 /**
  * A class for representing a reaction.
  */
-export class Reaction extends Attributes {
+class Reaction extends classes_js_1.Attributes {
     /**
      * The id of the reaction. This is also stored in the attributes, but is hee for convenience...
      */
@@ -397,8 +412,8 @@ export class Reaction extends Attributes {
     toString() {
         let s = super.toString();
         return super.toString() + `id(${this.id}), ` +
-            `reactants(${mapToString(this.reactants)}), ` +
-            `products(${mapToString(this.products)}), ` +
+            `reactants(${(0, functions_js_1.mapToString)(this.reactants)}), ` +
+            `products(${(0, functions_js_1.mapToString)(this.products)}), ` +
             `mCRCMethod(${this.mCRCMethod?.toString()}), ` +
             `transitionState(${this.transitionState?.toString()}), ` +
             `tunneling(${this.tunneling?.toString()}))`;
@@ -487,7 +502,8 @@ export class Reaction extends Attributes {
                 mCRCMethod_xml = this.mCRCMethod.toTag("mCRCMethod", padding1);
             }
         }
-        return getTag(reactants_xml + products_xml + tunneling_xml + transitionState_xml + mCRCMethod_xml, tagName, this.attributes, undefined, undefined, padding0, true);
+        return (0, xml_js_1.getTag)(reactants_xml + products_xml + tunneling_xml + transitionState_xml + mCRCMethod_xml, tagName, this.attributes, undefined, undefined, padding0, true);
     }
 }
+exports.Reaction = Reaction;
 //# sourceMappingURL=reaction.js.map

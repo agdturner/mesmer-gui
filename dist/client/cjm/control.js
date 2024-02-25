@@ -1,10 +1,13 @@
-import { NumberWithAttributes } from "./classes";
-import { getSelfClosingTag } from "./html";
-import { getTag } from "./xml";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Control = exports.DiagramEnergyOffset = void 0;
+const classes_1 = require("./classes");
+const html_1 = require("./html");
+const xml_1 = require("./xml");
 /**
  * A class for the diagram energy offset.
  */
-export class DiagramEnergyOffset extends NumberWithAttributes {
+class DiagramEnergyOffset extends classes_1.NumberWithAttributes {
     /**
      * @param {Map<string, string>} attributes The attributes (ref refers to a particular reaction).
      * @param {number} value The value.
@@ -13,10 +16,11 @@ export class DiagramEnergyOffset extends NumberWithAttributes {
         super(attributes, value);
     }
 }
+exports.DiagramEnergyOffset = DiagramEnergyOffset;
 /**
  * A class for the control.
  */
-export class Control {
+class Control {
     testDOS;
     printSpeciesProfile;
     testMicroRates;
@@ -75,21 +79,22 @@ export class Control {
             padding1 = padding + pad;
         }
         let s = "\n";
-        s += padding1 + getSelfClosingTag(null, "me:testDOS") + "\n";
-        s += padding1 + getSelfClosingTag(null, "me:printSpeciesProfile") + "\n";
-        s += padding1 + getSelfClosingTag(null, "me:testMicroRates") + "\n";
-        s += padding1 + getSelfClosingTag(null, "me:testRateConstant") + "\n";
-        s += padding1 + getSelfClosingTag(null, "me:printGrainDOS") + "\n";
-        s += padding1 + getSelfClosingTag(null, "me:printCellDOS") + "\n";
-        s += padding1 + getSelfClosingTag(null, "me:printReactionOperatorColumnSums") + "\n";
-        s += padding1 + getSelfClosingTag(null, "me:printTunnellingCoefficients") + "\n";
-        s += padding1 + getSelfClosingTag(null, "me:printGrainkfE") + "\n";
-        s += padding1 + getSelfClosingTag(null, "me:printGrainBoltzmann") + "\n";
-        s += padding1 + getSelfClosingTag(null, "me:printGrainkbE") + "\n";
-        s += padding1 + getSelfClosingTag(null, "me:eigenvalues") + "\n";
-        s += padding1 + getSelfClosingTag(null, "me:hideInactive");
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:testDOS") + "\n";
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:printSpeciesProfile") + "\n";
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:testMicroRates") + "\n";
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:testRateConstant") + "\n";
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:printGrainDOS") + "\n";
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:printCellDOS") + "\n";
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:printReactionOperatorColumnSums") + "\n";
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:printTunnellingCoefficients") + "\n";
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:printGrainkfE") + "\n";
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:printGrainBoltzmann") + "\n";
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:printGrainkbE") + "\n";
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:eigenvalues") + "\n";
+        s += padding1 + (0, html_1.getSelfClosingTag)(null, "me:hideInactive");
         s += this.diagramEnergyOffset?.toXML("me:diagramEnergyOffset", padding1);
-        return getTag(s, "control", undefined, undefined, null, padding, true);
+        return (0, xml_1.getTag)(s, "control", undefined, undefined, null, padding, true);
     }
 }
+exports.Control = Control;
 //# sourceMappingURL=control.js.map

@@ -1,12 +1,15 @@
-import { Attributes, NumberArrayWithAttributes, NumberWithAttributes } from './classes.js';
-import { mapToString } from './functions.js';
-import { getTag } from './xml.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Molecule = exports.DOSCMethod = exports.EnergyTransferModel = exports.DeltaEDown = exports.Property = exports.Bond = exports.Atom = void 0;
+const classes_js_1 = require("./classes.js");
+const functions_js_1 = require("./functions.js");
+const xml_js_1 = require("./xml.js");
 /**
  * A class for representing an atom.
  * @param {Map<string, string>} attributes The attributes.
  * If there is no "id" or "elementType" key an error will be thrown.
  */
-export class Atom extends Attributes {
+class Atom extends classes_js_1.Attributes {
     /**
      * @param attributes The attributes. If there is no "id" or "elementType" key an error will be thrown.
      */
@@ -41,6 +44,7 @@ export class Atom extends Attributes {
         return this.attributes.get("elementType");
     }
 }
+exports.Atom = Atom;
 /**
  * A class for representing an atomic bond - a bond beteen two atoms.
  * @param {Map<string, string>} attributes The attributes.
@@ -48,7 +52,7 @@ export class Atom extends Attributes {
  * @param {Atom} atomB Another atom.
  * @param {string} order The order of the bond.
  */
-export class Bond extends Attributes {
+class Bond extends classes_js_1.Attributes {
     /**
      * @param {Map<string, string>} attributes The attributes.
      */
@@ -63,10 +67,11 @@ export class Bond extends Attributes {
         return s + `)`;
     }
 }
+exports.Bond = Bond;
 /**
  * A class for representing a property.
  */
-export class Property extends Attributes {
+class Property extends classes_js_1.Attributes {
     /**
      * The property value.
      */
@@ -96,18 +101,19 @@ export class Property extends Attributes {
                 padding1 = padding + pad;
             }
         }
-        if (this.property instanceof NumberWithAttributes) {
-            return getTag(this.property.toXML("scalar", padding1), "property", this.attributes, undefined, undefined, padding, true);
+        if (this.property instanceof classes_js_1.NumberWithAttributes) {
+            return (0, xml_js_1.getTag)(this.property.toXML("scalar", padding1), "property", this.attributes, undefined, undefined, padding, true);
         }
         else {
-            return getTag(this.property.toXML("array", padding1), "property", this.attributes, undefined, undefined, padding, true);
+            return (0, xml_js_1.getTag)(this.property.toXML("array", padding1), "property", this.attributes, undefined, undefined, padding, true);
         }
     }
 }
+exports.Property = Property;
 /**
  * Represents the deltaEDown class.
  */
-export class DeltaEDown extends NumberWithAttributes {
+class DeltaEDown extends classes_js_1.NumberWithAttributes {
     /**
      * @param attributes The attributes.
      * @param units The units.
@@ -116,10 +122,11 @@ export class DeltaEDown extends NumberWithAttributes {
         super(attributes, value);
     }
 }
+exports.DeltaEDown = DeltaEDown;
 /**
  * A class for representing an energy transfer model.
  */
-export class EnergyTransferModel extends Attributes {
+class EnergyTransferModel extends classes_js_1.Attributes {
     /**
      * The DeltaEDown.
      */
@@ -138,17 +145,18 @@ export class EnergyTransferModel extends Attributes {
      */
     toXML(pad, padding) {
         if (pad == undefined) {
-            return getTag(this.deltaEDown.toXML("me.deltaEDown", padding), "me:energyTransferModel", this.attributes, undefined, undefined, padding, false);
+            return (0, xml_js_1.getTag)(this.deltaEDown.toXML("me.deltaEDown", padding), "me:energyTransferModel", this.attributes, undefined, undefined, padding, false);
         }
         else {
-            return getTag(this.deltaEDown.toXML("me.deltaEDown", padding), "energyTransferModel", undefined, undefined, undefined, padding, true);
+            return (0, xml_js_1.getTag)(this.deltaEDown.toXML("me.deltaEDown", padding), "energyTransferModel", undefined, undefined, undefined, padding, true);
         }
     }
 }
+exports.EnergyTransferModel = EnergyTransferModel;
 /**
  * A class for representing a method for calculating the density of states.
  */
-export class DOSCMethod {
+class DOSCMethod {
     type;
     constructor(type) {
         this.type = type;
@@ -171,6 +179,7 @@ export class DOSCMethod {
         return "\n" + s;
     }
 }
+exports.DOSCMethod = DOSCMethod;
 /**
  * A class for representing a molecule.
  * @param {string} id The id of the molecule.
@@ -182,7 +191,7 @@ export class DOSCMethod {
  * @param {EnergyTransferModel | null} energyTransferModel The energy transfer model.
  * @param {DOSCMethod | null} dOSCMethod The method for calculating density of states.
  */
-export class Molecule extends Attributes {
+class Molecule extends classes_js_1.Attributes {
     id;
     // Atoms
     atoms;
@@ -232,13 +241,13 @@ export class Molecule extends Attributes {
             r += `active(${active}), `;
         }
         if (this.atoms.size > 0) {
-            r += `atoms(${mapToString(this.atoms)}), `;
+            r += `atoms(${(0, functions_js_1.mapToString)(this.atoms)}), `;
         }
         if (this.bonds.size > 0) {
-            r += `bonds(${mapToString(this.bonds)}), `;
+            r += `bonds(${(0, functions_js_1.mapToString)(this.bonds)}), `;
         }
         if (this.properties.size > 0) {
-            r += `properties(${mapToString(this.properties)}), `;
+            r += `properties(${(0, functions_js_1.mapToString)(this.properties)}), `;
         }
         if (this.energyTransferModel) {
             r += `energyTransferModel(${this.energyTransferModel.toString()}), `;
@@ -281,7 +290,7 @@ export class Molecule extends Attributes {
         if (zpe == undefined) {
             return 0;
         }
-        if (zpe.property instanceof NumberWithAttributes) {
+        if (zpe.property instanceof classes_js_1.NumberWithAttributes) {
             return zpe.property.value;
         }
         else {
@@ -297,7 +306,7 @@ export class Molecule extends Attributes {
         if (property == undefined) {
             throw new Error("No me.ZPE property found");
         }
-        if (property.property instanceof NumberArrayWithAttributes) {
+        if (property.property instanceof classes_js_1.NumberArrayWithAttributes) {
             throw new Error("Expected a NumberWithAttributes but got a NumberArrayWithAttributes and not sure how to handle that.");
         }
         else {
@@ -312,7 +321,7 @@ export class Molecule extends Attributes {
         let property = this.properties.get('me:rotConsts');
         if (property != undefined) {
             if (property.property != null) {
-                if (property.property instanceof NumberWithAttributes) {
+                if (property.property instanceof classes_js_1.NumberWithAttributes) {
                     return [property.property.value];
                 }
                 else {
@@ -332,10 +341,10 @@ export class Molecule extends Attributes {
     getVibrationFrequencies() {
         let property = this.properties.get('me:vibFreqs');
         if (property != undefined) {
-            if (property.property instanceof NumberWithAttributes) {
+            if (property.property instanceof classes_js_1.NumberWithAttributes) {
                 return [property.property.value];
             }
-            else if (property.property instanceof NumberArrayWithAttributes) {
+            else if (property.property instanceof classes_js_1.NumberArrayWithAttributes) {
                 return property.property.values;
             }
             else {
@@ -369,7 +378,7 @@ export class Molecule extends Attributes {
         }
         if (this.atoms.size > 1) {
             if (atoms_xml != "") {
-                atoms_xml = getTag(atoms_xml, "atomArray", undefined, undefined, undefined, padding1, true);
+                atoms_xml = (0, xml_js_1.getTag)(atoms_xml, "atomArray", undefined, undefined, undefined, padding1, true);
             }
         }
         // Bonds
@@ -378,23 +387,23 @@ export class Molecule extends Attributes {
             bonds_xml += bond.toTag("bond", padding2);
         }
         if (bonds_xml != "") {
-            bonds_xml = getTag(bonds_xml, "bondArray", undefined, undefined, undefined, padding1, true);
+            bonds_xml = (0, xml_js_1.getTag)(bonds_xml, "bondArray", undefined, undefined, undefined, padding1, true);
         }
         // Properties
         let properties_xml = "";
         this.properties.forEach(property => {
             let property_xml = "";
-            if (property.property instanceof NumberWithAttributes) {
+            if (property.property instanceof classes_js_1.NumberWithAttributes) {
                 property_xml += property.property.toXML("scalar", padding3);
             }
             else {
                 property_xml += property.property.toXML("array", padding3);
             }
-            properties_xml += getTag(property_xml, "property", property.attributes, undefined, undefined, padding2, true);
+            properties_xml += (0, xml_js_1.getTag)(property_xml, "property", property.attributes, undefined, undefined, padding2, true);
         });
         if (this.properties.size > 1) {
             if (properties_xml != "") {
-                properties_xml = getTag(properties_xml, "propertyList", undefined, undefined, undefined, padding1, true);
+                properties_xml = (0, xml_js_1.getTag)(properties_xml, "propertyList", undefined, undefined, undefined, padding1, true);
             }
         }
         // EnergyTransferModel
@@ -407,7 +416,8 @@ export class Molecule extends Attributes {
         if (this.dOSCMethod) {
             dOSCMethod_xml = this.dOSCMethod.toTag(padding1);
         }
-        return getTag(atoms_xml + bonds_xml + properties_xml + energyTransferModel_xml + dOSCMethod_xml, tagName, this.attributes, undefined, undefined, padding0, true);
+        return (0, xml_js_1.getTag)(atoms_xml + bonds_xml + properties_xml + energyTransferModel_xml + dOSCMethod_xml, tagName, this.attributes, undefined, undefined, padding0, true);
     }
 }
+exports.Molecule = Molecule;
 //# sourceMappingURL=molecule.js.map

@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "esnext",
-    "module": "es2020",
+    "module": "CommonJS",
     "outDir": "dist/client/cjm",
     "rootDir": "src/client/cjm",
   },

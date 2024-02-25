@@ -1,10 +1,13 @@
-import { Attributes } from "./classes.js";
-import { ReactionMolecule } from "./reaction.js";
-import { getTag } from "./xml.js";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Conditions = exports.BathGas = exports.PTpair = void 0;
+const classes_js_1 = require("./classes.js");
+const reaction_js_1 = require("./reaction.js");
+const xml_js_1 = require("./xml.js");
 /**
  * A class for representing a Pressure and Temperature pair.
  */
-export class PTpair extends Attributes {
+class PTpair extends classes_js_1.Attributes {
     /**
      * The pressure also stored as a string in the attributes.
      */
@@ -34,18 +37,20 @@ export class PTpair extends Attributes {
         }
     }
 }
+exports.PTpair = PTpair;
 /**
  * A class for representing a bath gas reaction molecule.
  */
-export class BathGas extends ReactionMolecule {
+class BathGas extends reaction_js_1.ReactionMolecule {
     constructor(attributes, molecule) {
         super(attributes, molecule);
     }
 }
+exports.BathGas = BathGas;
 /**
  * A class for representing the experiment conditions.
  */
-export class Conditions {
+class Conditions {
     /**
      * The bath gas.
      */
@@ -83,7 +88,8 @@ export class Conditions {
         this.pTs.forEach((pt) => {
             s += pt.toTag("PTpair", padding1);
         });
-        return getTag(s, "conditions", undefined, undefined, undefined, padding, true);
+        return (0, xml_js_1.getTag)(s, "conditions", undefined, undefined, undefined, padding, true);
     }
 }
+exports.Conditions = Conditions;
 //# sourceMappingURL=conditions.js.map

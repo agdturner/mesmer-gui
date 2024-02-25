@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getTextWidth = exports.getTextHeight = exports.writeText = exports.drawLine = exports.drawLevel = void 0;
 /**
  * Draw a horizontal line and add labels.
  * @param {CanvasRenderingContext2D} ctx The context to use.
@@ -12,12 +15,13 @@
  * @param {string} label The label.
  * @param {string} energyString The energy.
  */
-export function drawLevel(ctx, strokeStyle, strokewidth, x0, y0, x1, y1, font, th, label, energyString) {
+function drawLevel(ctx, strokeStyle, strokewidth, x0, y0, x1, y1, font, th, label, energyString) {
     let x_centre = x0 + ((x1 - x0) / 2);
     writeText(ctx, energyString, font, strokeStyle, getTextStartX(ctx, energyString, font, x_centre), y1 + th);
     writeText(ctx, label, font, strokeStyle, getTextStartX(ctx, label, font, x_centre), y1 + 3 * th);
     drawLine(ctx, strokeStyle, strokewidth, x0, y0, x1, y1);
 }
+exports.drawLevel = drawLevel;
 /**
  * @param {CanvasRenderingContext2D} ctx The context to use.
  * @param {string} text The text to get the start x-coordinate of.
@@ -38,7 +42,7 @@ function getTextStartX(ctx, text, font, x_centre) {
  * @param {Integer} x2 The end x-coordinate of the line.
  * @param {Integer} y2 The end y-coordinate of the line.
  */
-export function drawLine(ctx, strokeStyle, strokewidth, x1, y1, x2, y2) {
+function drawLine(ctx, strokeStyle, strokewidth, x1, y1, x2, y2) {
     ctx.beginPath();
     ctx.strokeStyle = strokeStyle;
     ctx.lineWidth = strokewidth;
@@ -46,6 +50,7 @@ export function drawLine(ctx, strokeStyle, strokewidth, x1, y1, x2, y2) {
     ctx.lineTo(x2, y2);
     ctx.stroke();
 }
+exports.drawLine = drawLine;
 /**
  * Writes text to the canvas. (It is probably better to write all the labels in one go.)
  * @param {CanvasRenderingContext2D} ctx The context to use.
@@ -55,7 +60,7 @@ export function drawLine(ctx, strokeStyle, strokewidth, x1, y1, x2, y2) {
  * @param {number} x The horizontal position of the text.
  * @param {number} y The vertical position of the text.
  */
-export function writeText(ctx, text, font, colour, x, y) {
+function writeText(ctx, text, font, colour, x, y) {
     // Save the context (to restore after).
     ctx.save();
     // Translate to the point where text is to be added.
@@ -71,25 +76,28 @@ export function writeText(ctx, text, font, colour, x, y) {
     // Restore the context.
     ctx.restore();
 }
+exports.writeText = writeText;
 /**
  * @param {CanvasRenderingContext2D} ctx The context to use.
  * @param {string} text The text to get the height of.
  * @param {string} font The font to use.
  * @returns {number} The height of the text in pixels.
  */
-export function getTextHeight(ctx, text, font) {
+function getTextHeight(ctx, text, font) {
     ctx.font = font;
     var fontMetric = ctx.measureText(text);
     return fontMetric.actualBoundingBoxAscent + fontMetric.actualBoundingBoxDescent;
 }
+exports.getTextHeight = getTextHeight;
 /**
  * @param {CanvasRenderingContext2D} ctx The context to use.
  * @param {string} text The text to get the width of.
  * @param {string} font The font to use.
  * @returns {number} The width of the text in pixels.
  */
-export function getTextWidth(ctx, text, font) {
+function getTextWidth(ctx, text, font) {
     ctx.font = font;
     return ctx.measureText(text).width;
 }
+exports.getTextWidth = getTextWidth;
 //# sourceMappingURL=canvas.js.map

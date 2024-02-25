@@ -1,10 +1,13 @@
-import { getSelfClosingTag } from "./html";
-import { getTag } from "./xml";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NumberArrayWithAttributes = exports.NumberWithAttributes = exports.Attributes = void 0;
+const html_1 = require("./html");
+const xml_1 = require("./xml");
 /**
  * A class for representing things with attributes.
  * @param {Map<string, string>} attributes The attributes.
  */
-export class Attributes {
+class Attributes {
     /**
      * The attributes.
      */
@@ -40,7 +43,7 @@ export class Attributes {
      * @returns A tag representation.
      */
     toTag(tagName, padding) {
-        let s = getSelfClosingTag(this.attributes, tagName);
+        let s = (0, html_1.getSelfClosingTag)(this.attributes, tagName);
         if (padding) {
             return "\n" + padding + s;
         }
@@ -53,14 +56,15 @@ export class Attributes {
      * @returns An XML representation.
      */
     toXML(tagName, padding) {
-        return getTag("", tagName, this.attributes, undefined, undefined, padding, false);
+        return (0, xml_1.getTag)("", tagName, this.attributes, undefined, undefined, padding, false);
     }
 }
+exports.Attributes = Attributes;
 /**
  * A class for representing a number with attributes.
  * e.g. A value with units and measurement/uncertainty information.
  */
-export class NumberWithAttributes extends Attributes {
+class NumberWithAttributes extends Attributes {
     value;
     /**
      * @param {Map<string, string>} attributes The attributes.
@@ -83,14 +87,15 @@ export class NumberWithAttributes extends Attributes {
      * @returns An XML representation.
      */
     toXML(tagName, padding) {
-        return getTag(this.value.toString().trim(), tagName, this.attributes, undefined, undefined, padding, false);
+        return (0, xml_1.getTag)(this.value.toString().trim(), tagName, this.attributes, undefined, undefined, padding, false);
     }
 }
+exports.NumberWithAttributes = NumberWithAttributes;
 /**
  * A class for representing numerical values with a shared attributes.
  * e.g. An array values sharing the same units and measurement details.
  */
-export class NumberArrayWithAttributes extends Attributes {
+class NumberArrayWithAttributes extends Attributes {
     /**
      * The values.
      */
@@ -131,7 +136,8 @@ export class NumberArrayWithAttributes extends Attributes {
      * @returns An XML representation.
      */
     toXML(tagName, padding) {
-        return getTag(this.values.toString().replaceAll(",", this.delimiter), tagName, this.attributes, undefined, undefined, padding, false);
+        return (0, xml_1.getTag)(this.values.toString().replaceAll(",", this.delimiter), tagName, this.attributes, undefined, undefined, padding, false);
     }
 }
+exports.NumberArrayWithAttributes = NumberArrayWithAttributes;
 //# sourceMappingURL=classes.js.map

@@ -1,9 +1,12 @@
-import { NumberWithAttributes } from "./classes";
-import { getTag } from "./xml";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ModelParameters = exports.GrainSize = void 0;
+const classes_1 = require("./classes");
+const xml_1 = require("./xml");
 /**
  * A class for measures of grain size.
  */
-export class GrainSize extends NumberWithAttributes {
+class GrainSize extends classes_1.NumberWithAttributes {
     /**
      * @param {string} units The units.
      */
@@ -14,10 +17,11 @@ export class GrainSize extends NumberWithAttributes {
         return `GrainSize(${super.toString()})`;
     }
 }
+exports.GrainSize = GrainSize;
 /**
  * A class for model parameters.
  */
-export class ModelParameters {
+class ModelParameters {
     /**
      * The grain size.
      */
@@ -51,8 +55,9 @@ export class ModelParameters {
             padding2 = padding + pad;
         }
         let s = this.grainSize.toXML("me:GrainSize", padding2);
-        s += getTag(this.energyAboveTheTopHill.toString(), "me:EnergyAboveTheTopHill", undefined, undefined, undefined, padding2, false);
-        return getTag(s, "me:modelParameters", undefined, undefined, undefined, padding, true);
+        s += (0, xml_1.getTag)(this.energyAboveTheTopHill.toString(), "me:EnergyAboveTheTopHill", undefined, undefined, undefined, padding2, false);
+        return (0, xml_1.getTag)(s, "me:modelParameters", undefined, undefined, undefined, padding, true);
     }
 }
+exports.ModelParameters = ModelParameters;
 //# sourceMappingURL=modelParameters.js.map
